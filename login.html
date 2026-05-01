@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neumorphic Background</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+
+    <!-- Background Shapes -->
+    <div class="background-container">
+        <!-- Top Right Group -->
+        <div class="pill pill-1"></div>
+        <div class="pill pill-2"></div>
+        <div class="pill pill-3"></div>
+        
+        <!-- Bottom Left Group -->
+        <div class="pill pill-4"></div>
+        <div class="pill pill-5"></div>
+        <div class="pill pill-6"></div>
+    </div>
+
+
+<div class="login-card">
+    <!-- Left Side: Login Form -->
+    <div class="login-left">
+        <img src="../assets/login-images/logo-name.png" alt="Flintlock Logo" class="brand-logo">
+        
+        <h1 class="login-title">Login</h1>
+        
+        <form action="#" method="POST">
+            <!-- Username Input -->
+            <div class="input-group">
+                <span class="icon">👤</span>
+                <input type="text" placeholder="Username" required>
+            </div>
+            
+            <!-- Password Input -->
+            <div class="input-group">
+                <span class="icon">🔒</span>
+                <input type="password" placeholder="Password" required>
+                <span class="icon-right" style="cursor:pointer;">👁️</span>
+            </div>
+            
+            <!-- Options Row -->
+            <div class="form-options">
+                <label class="remember-me">
+                    <input type="checkbox"> Remember Me
+                </label>
+                
+                <div class="role-select">
+                    <select required>
+                        <option value="" disabled selected>Select your role</option>
+                        <option value="admin">Admin</option>
+                        <option value="user">User</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <button type="submit" class="btn-login">Login</button>
+            
+            <div class="divider">
+                <span>Or</span>
+            </div>
+            
+            <button type="button" class="btn-signup">Sign up</button>
+        </form>
+
+        <!-- Bottom Right Signature -->
+        <div class="team-signature">
+            <span>Three Musketeers</span>
+            <img src="../assets/login-images/logo.png" alt="Team Icon">
+        </div>
+    </div>
+
+    <!-- Right Side: Image and Welcome Text -->
+    <div class="login-right">
+        <h2>Welcome!</h2>
+    </div>
+</div>
+
+</body>
+</html>
