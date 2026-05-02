@@ -29,7 +29,7 @@
         
         <h1 class="login-title">Login</h1>
         
-        <form action="#" method="POST">
+        <form id="loginForm" action="#" method="POST">
             <!-- Username Input -->
             <div class="input-group">
                 <span class="icon">👤</span>
@@ -80,5 +80,12 @@
     </div>
 </div>
 
+<script>
+    // Handle form submission
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent actual form submission
+        window.location.href = '../homepage.html'; // Redirect to homepage
+    });
+</script>
 </body>
 </html>
