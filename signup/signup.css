@@ -1,3 +1,4 @@
+
 /* CSS Variables for easy color adjustments */
 :root {
     --bg-color: #f4f6f9;       /* Soft off-white background */
@@ -85,37 +86,36 @@ body, html {
     left: -25%;
 }
 
-/* Make sure your content container sits on top */
+/* Make sures that the content container sits on top */
 .content {
     position: relative;
     z-index: 1;
     padding: 2rem;
 }
 
-
 /* --- Main Container --- */
 .login-card {
     display: flex;
     width: 900px;
     max-width: 95%;
-    min-height: 550px;
+    min-height: 600px; /* Slightly taller to fit the extra sign-up fields */
     background-color: #ffffff;
     border-radius: 25px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1); /* Soft drop shadow */
-    overflow: hidden; /* Keeps the right image inside the rounded corners */
-    margin: 0 auto; /* Centers the card if the parent uses flex/grid */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
     
-    /* Center the card vertically and horizontally in the viewport */
+    /* Center the card */
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    z-index: 10;
 }
 
 /* --- Left Side (Form) --- */
 .login-left {
-    flex: 1.1; /* Takes up slightly more than half the space */
-    padding: 50px 60px;
+    flex: 1.1;
+    padding: 40px 60px;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -123,95 +123,107 @@ body, html {
 }
 
 .brand-logo {
-    width: 120px;
-    margin-bottom: 30px;
+    width: 100px;
+    margin-bottom: 20px;
 }
 
 .login-title {
     font-size: 2.2rem;
     font-weight: 800;
-    margin: 0 0 30px 0;
+    margin: 0 0 20px 0;
     color: #000;
 }
 
-/* Input Fields */
-.input-group {
-    position: relative;
-    margin-bottom: 20px;
+/* --- Sign Up Specific Input Styles --- */
+.input-label {
+    font-size: 13px;
+    color: #333;
+    margin-bottom: 6px;
+    margin-left: 10px;
+    font-weight: 500;
 }
 
-.input-group input {
+.input-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 12px;
+}
+
+.input-row-labels {
+    display: flex;
+    gap: 15px;
+}
+
+.input-row-labels .input-label {
+    flex: 1;
+}
+
+/* For inputs without left-side icons (Name) */
+.standard-input {
+    flex: 1;
+    padding: 12px 20px;
+    background-color: #e8e8e8;
+    border: 1px solid #dcdcdc;
+    border-radius: 30px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
     width: 100%;
-    padding: 14px 40px 14px 45px; /* Space for icons */
+}
+
+.standard-input:focus {
+    border-color: #888;
+}
+
+/* For inputs that might have right-side icons (Username, Email, Passwords) */
+.input-group {
+    position: relative;
+}
+
+.signup-group {
+    margin-bottom: 12px;
+    flex: 1;
+}
+
+.signup-group input {
+    width: 100%;
+    padding: 12px 40px 12px 20px; /* Padding on right for the eye icon */
     background-color: #e8e8e8;
     border: 1px solid #dcdcdc;
     border-radius: 30px;
     box-sizing: border-box;
-    font-size: 15px;
+    font-size: 14px;
     outline: none;
     transition: border-color 0.3s ease;
 }
 
-.input-group input:focus {
+.signup-group input:focus {
     border-color: #888;
 }
 
-.input-group .icon {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 16px;
-    opacity: 0.6;
-}
-
-.input-group .icon-right {
+.signup-group .icon-right {
     position: absolute;
     right: 15px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 16px;
+    font-size: 14px;
     opacity: 0.5;
-}
-
-/* Form Options (Remember Me & Dropdown) */
-.form-options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    font-size: 14px;
-    color: #666;
-}
-
-.remember-me {
-    display: flex;
-    align-items: center;
-    gap: 5px;
     cursor: pointer;
 }
 
-.role-select select {
-    border: none;
-    background: transparent;
-    font-size: 14px;
-    color: #666;
-    outline: none;
-    cursor: pointer;
-    font-style: italic;
-}
-
-/* Buttons */
+/* --- Buttons --- */
 .btn-login {
     width: 100%;
-    padding: 14px;
+    padding: 12px;
     background-color: #000000;
     color: #ffffff;
     border: none;
     border-radius: 30px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
     cursor: pointer;
+    margin-top: 10px;
     transition: background-color 0.3s;
 }
 
@@ -223,7 +235,7 @@ body, html {
     display: flex;
     align-items: center;
     text-align: center;
-    margin: 20px 0;
+    margin: 15px 0;
     color: #666;
     font-size: 14px;
 }
@@ -241,12 +253,12 @@ body, html {
 
 .btn-signup {
     width: 100%;
-    padding: 14px;
+    padding: 12px;
     background-color: #929292;
     color: #ffffff;
     border: none;
     border-radius: 30px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s;
@@ -256,28 +268,27 @@ body, html {
     background-color: #7a7a7a;
 }
 
-/* Signature at bottom right of form */
+/* --- Signature --- */
 .team-signature {
     position: absolute;
-    bottom: 25px;
+    bottom: 20px;
     right: 30px;
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
     color: #000;
 }
 
 .team-signature img {
-    width: 20px;
+    width: 18px;
     height: auto;
 }
 
 /* --- Right Side (Image) --- */
 .login-right {
     flex: 0.9;
-    /* Uses the relative path back to the assets folder */
     background-image: url('../assets/login-images/login-sidepicture.jpg'); 
     background-size: cover;
     background-position: center;
