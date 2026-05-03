@@ -124,6 +124,13 @@ html, body {
     color: #111;
 }
 
+.form-message {
+    margin: 0 0 6px;
+    min-height: 1.4rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
 .icon-button {
     border: none;
     background: transparent;
