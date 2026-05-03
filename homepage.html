@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage - Flintlock</title>
+    <link rel="stylesheet" href="nav.css">
+    <link rel="stylesheet" href="homepage.css">
+</head>
+<body>
+
+    <!-- Neumorphic Background -->
+    <!-- Background Shapes -->
+    <div class="background-container">
+        <!-- Top Right Group -->
+        <div class="pill pill-1"></div>
+        <div class="pill pill-2"></div>
+        <div class="pill pill-3"></div>
+        
+        <!-- Bottom Left Group -->
+        <div class="pill pill-4"></div>
+        <div class="pill pill-5"></div>
+        <div class="pill pill-6"></div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="nav-left">
+            <div class="menu-icon">☰</div>
+            <!-- Using the white transparent logo -->
+            <img src="../assets/logo-name-white.png" alt="Flintlock Logo" class="nav-logo-img">
+        </div>
+    </nav>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <a href="homepage.html" class="nav-item active">🏠</a>
+        <a href="profile.html" class="nav-item">👤</a>
+        <a href="security.html" class="nav-item">🔒</a>
+        <a href="#" class="nav-item">ⓘ</a> 
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="profile-wrapper">
+            
+            <!-- Left: Profile Card -->
+            <div class="profile-card">
+                <div class="avatar-circle">
+                    <!-- Generic user silhouette -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <h3 id="display-name">First Name Last Name</h3>
+                <p id="display-username">@username</p>
+            </div>
+
+            <!-- Right: Profile Details (Read-only) -->
+            <div class="profile-details">
+                <!-- Name Row -->
+                <div class="input-label">Name</div>
+                <div class="input-row">
+                    <input type="text" value="First Name" class="readonly-input" readonly>
+                    <input type="text" value="Last Name" class="readonly-input" readonly>
+                </div>
+
+                <!-- Username Row -->
+                <div class="input-label">Username</div>
+                <div class="input-group">
+                    <input type="text" value="e.g: juandelacruz396239" class="readonly-input full-width" readonly>
+                </div>
+
+                <!-- Email Row -->
+                <div class="input-label">Email Address</div>
+                <div class="input-group">
+                    <input type="email" value="e.g: juandelacruz@gmail.com" class="readonly-input full-width" readonly>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>

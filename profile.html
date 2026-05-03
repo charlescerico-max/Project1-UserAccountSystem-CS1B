@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Flintlock</title>
+    <link rel="stylesheet" href="nav.css">
+    <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+
+    <!-- Neumorphic Background -->
+    <div class="background-container">
+        <div class="pill pill-1"></div>
+        <div class="pill pill-2"></div>
+        <div class="pill pill-3"></div>
+        <div class="pill pill-4"></div>
+        <div class="pill pill-5"></div>
+        <div class="pill pill-6"></div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="nav-left">
+            <div class="menu-icon">☰</div>
+            <!-- Using the white transparent logo -->
+            <img src="../assets/logo-name-white.png" alt="Flintlock Logo" class="nav-logo-img">
+        </div>
+    </nav>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <a href="homepage.html" class="nav-item">🏠</a>
+        <a href="profile.html" class="nav-item active">👤</a>
+        <a href="security.html" class="nav-item">🔒</a>
+        <a href="#" class="nav-item">ⓘ</a> 
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="profile-wrapper">
+            
+            <!-- Left: Profile Card -->
+            <div class="profile-card">
+                <div class="avatar-circle">
+                    <!-- Generic user silhouette -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <h3 id="display-name">First Name Last Name</h3>
+                <p id="display-username">@username</p>
+            </div>
+
+            <!-- Right: Profile Details (Read-only) -->
+            <div class="profile-details">
+                <div class="detail-row">
+                    <div class="field-label-row">
+                        <label>Name</label>
+                    </div>
+                    <div class="name-inputs">
+                        <div class="input-group">
+                            <input type="text" value="First Name" id="first-name" class="readonly-input" readonly>
+                            <button type="button" class="input-icon" data-target="first-name">✏️</button>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" value="Last Name" id="last-name" class="readonly-input" readonly>
+                            <button type="button" class="input-icon" data-target="last-name">✏️</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="field-label-row">
+                        <label>Username</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" value="username" id="username" class="readonly-input full-width" readonly>
+                    </div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="field-label-row">
+                        <label>Email Address</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="email" value="user@example.com" id="email" class="readonly-input full-width" readonly>
+                        <button type="button" class="input-icon" data-target="email">✏️</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    <button type="button" class="btn-delete">Delete Account</button>
+
+    <script>
+        function enableField(id) {
+            const field = document.getElementById(id);
+            if (!field) return;
+            field.removeAttribute('readonly');
+            field.classList.add('editable');
+            field.focus();
+        }
+
+        document.querySelectorAll('.input-icon').forEach(button => {
+            button.addEventListener('click', () => {
+                const target = button.dataset.target;
+                if (!target) return;
+                enableField(target);
+            });
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,213 @@
+/* --- Variables & Reset --- */
+:root {
+    --bg-color: #f4f6f9;       
+    --shadow-light: #ffffff;   
+    --shadow-dark: #d5d9e2;
+    --nav-bg: #000000;
+    --sidebar-bg: #2a2a2a;     
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: whitesmoke;
+    font-family: sans-serif;
+    overflow-x: hidden;
+}
+
+/* --- Neumorphic Background Shapes --- */
+.background-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1; 
+    overflow: hidden;
+}
+
+.pill {
+    position: absolute;
+    background: whitesmoke;
+    border-radius: 100px; 
+    transform: rotate(-45deg); 
+    box-shadow: 15px 15px 30px var(--shadow-dark), -15px -15px 30px var(--shadow-light);
+}
+
+.pill-1 { width: 120vw; height: 120px; top: -20%; right: -10%; }
+.pill-2 { width: 80vw; height: 120px; top: 5%; right: -20%; }
+.pill-3 { width: 50vw; height: 120px; top: 30%; right: -15%; }
+.pill-4 { width: 100vw; height: 120px; bottom: -15%; left: -20%; }
+.pill-5 { width: 70vw; height: 120px; bottom: 10%; left: -15%; }
+.pill-6 { width: 40vw; height: 120px; bottom: 35%; left: -25%; }
+
+/* --- Top Navigation and Sidebar ---
+   Shared navigation styles are provided by nav.css */
+
+/* --- Main Content & Profile Layout --- */
+.main-content {
+    margin-left: 70px; 
+    margin-top: 60px;  
+    padding: 40px;
+    min-height: calc(100vh - 60px);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 100px; 
+    box-sizing: border-box;
+}
+
+.profile-wrapper {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    z-index: 10;
+}
+
+/* --- Profile Card (Left) --- */
+.profile-card {
+    background-color: white;
+    border: 2px solid black;
+    width: 250px;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.avatar-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.avatar-circle svg {
+    width: 50px;
+    height: 50px;
+}
+
+.profile-card h3 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.profile-card p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+}
+
+/* --- Profile Details (Right) --- */
+.profile-details {
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+}
+
+.input-label {
+    font-size: 13px;
+    color: #333;
+    margin-bottom: 6px;
+    margin-left: 10px;
+    font-weight: 500;
+}
+
+.input-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.field-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.field-label-row label {
+    font-size: 13px;
+    color: #333;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.name-inputs {
+    display: flex;
+    gap: 15px;
+}
+
+.input-icon,
+.field-edit-btn {
+    border: none;
+    background: transparent;
+    color: #666;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 6px;
+    border-radius: 12px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.input-icon:hover,
+.field-edit-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: #000;
+}
+
+.readonly-input {
+    padding: 12px 20px;
+    background-color: #e8e8e8;
+    border: none;
+    border-radius: 30px;
+    font-size: 14px;
+    color: #888;
+    outline: none;
+    box-sizing: border-box;
+    flex: 1;
+    cursor: not-allowed;
+}
+
+.readonly-input.editable {
+    cursor: text;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.btn-delete {
+    margin-top: 40px;
+    padding: 14px 28px;
+    border: 1px solid rgba(199, 38, 38, 0.2);
+    background: rgba(255,255,255,0.9);
+    color: #b82424;
+    border-radius: 25px;
+    font-weight: 700;
+    cursor: pointer;
+    display: block;
+    margin-left: auto;
+}
+
+.btn-delete:hover {
+    background: rgba(199, 38, 38, 0.08);
+}
