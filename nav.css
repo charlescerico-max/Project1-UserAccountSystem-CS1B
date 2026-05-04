@@ -50,27 +50,64 @@
     padding-top: 30px;
     gap: 40px;
     z-index: 90;
+    transition: width 0.25s ease, opacity 0.25s ease, padding 0.25s ease;
+    overflow: hidden;
+}
+
+.sidebar-logout {
+    margin-top: auto;
+    margin-bottom: 20px;
+    width: calc(100% - 16px);
+    max-width: 120px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 999px;
+    background: #fff;
+    color: #000;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.sidebar-logout:hover {
+    background: #f0f0f0;
 }
 
 .nav-item {
-    font-size: 22px;
-    line-height: 1;
     color: var(--nav-item-color);
     cursor: pointer;
     padding: 10px;
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 14px;
     transition: background 0.2s ease, color 0.2s ease;
     text-decoration: none;
-    width: 46px;
-    min-width: 46px;
-    height: 46px;
-    min-height: 46px;
+    width: 56px;
+    height: 56px;
+}
+
+.nav-icon {
+    width: 24px;
+    height: 24px;
 }
 
 .nav-item:hover,
 .nav-item.active {
     background: var(--nav-item-hover);
     color: #fff;
+}
+
+.nav-item img {
+    filter: brightness(0) invert(1);
+}
+
+.nav-item.active img,
+.nav-item:hover img {
+    filter: brightness(1) invert(1);
 }

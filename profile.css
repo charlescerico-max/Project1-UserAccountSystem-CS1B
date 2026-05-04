@@ -196,18 +196,130 @@ body, html {
 }
 
 .btn-delete {
-    margin-top: 40px;
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 15;
     padding: 14px 28px;
     border: 1px solid rgba(199, 38, 38, 0.2);
-    background: rgba(255,255,255,0.9);
+    background: rgba(255,255,255,0.95);
     color: #b82424;
     border-radius: 25px;
     font-weight: 700;
     cursor: pointer;
-    display: block;
-    margin-left: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
 .btn-delete:hover {
     background: rgba(199, 38, 38, 0.08);
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    padding: 20px;
+}
+
+.hidden {
+    display: none;
+}
+
+.confirm-box {
+    width: min(480px, 100%);
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 24px;
+    padding: 28px 26px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+    text-align: center;
+}
+
+.confirm-title {
+    margin: 0 0 8px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #111;
+}
+
+.confirm-subtitle {
+    margin: 0 0 22px;
+    color: #4d4d4d;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.btn-cancel,
+.btn-yes {
+    min-width: 120px;
+    padding: 12px 24px;
+    border-radius: 28px;
+    border: 1px solid transparent;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-cancel {
+    background: #fff;
+    color: #8c1818;
+    border-color: #8c1818;
+}
+
+.btn-cancel:hover {
+    background: rgba(199, 38, 38, 0.08);
+}
+
+.btn-yes {
+    background: #177e45;
+    color: #ffffff;
+    border-color: #177e45;
+}
+
+.btn-yes:hover {
+    background: #145f38;
+}
+
+.auth-group {
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.auth-group label {
+    display: block;
+    margin-bottom: 6px;
+    color: #333;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.auth-group input {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 999px;
+    border: 1px solid #d2d2d2;
+    background: #f3f3f3;
+    font-size: 0.95rem;
+    color: #111;
+    box-sizing: border-box;
+}
+
+.auth-group input:focus {
+    border-color: #666;
+    outline: none;
+}
+
+.delete-step {
+    padding: 32px 28px;
 }

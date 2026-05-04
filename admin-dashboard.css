@@ -53,6 +53,12 @@ html, body {
     box-sizing: border-box;
 }
 
+/* Ensure admin sidebar icon buttons stay consistent with the shared nav styles */
+.sidebar .nav-item {
+    width: 56px;
+    height: 56px;
+}
+
 .admin-card {
     position: relative;
     max-width: 1200px;
