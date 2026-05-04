@@ -48,15 +48,20 @@ body, html {
 
 /* --- Main Content & Profile Layout --- */
 .main-content {
-    margin-left: 70px; 
-    margin-top: 60px;  
+    margin-left: 0;
+    margin-top: 60px;
     padding: 40px;
     min-height: calc(100vh - 60px);
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding-top: 100px; 
+    padding-top: 100px;
     box-sizing: border-box;
+    transition: margin-left 0.25s ease;
+}
+
+body.nav-open .main-content {
+    margin-left: 220px;
 }
 
 .profile-wrapper {

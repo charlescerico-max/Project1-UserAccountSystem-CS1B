@@ -30,10 +30,10 @@
 
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
-        <a href="homepage.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/home.png" alt="Home"></a>
-        <a href="profile.html" class="nav-item active"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/user.png" alt="Profile"></a>
-        <a href="security.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/lock--v1.png" alt="Security"></a>
-        <a href="about-us.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/info.png" alt="About Us"></a>
+        <a href="homepage.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/home.png" alt="Home"><span>Home</span></a>
+        <a href="profile.html" class="nav-item active"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/user.png" alt="Profile"><span>Profile</span></a>
+        <a href="security.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/lock--v1.png" alt="Security"><span>Security</span></a>
+        <a href="about-us.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/info.png" alt="About Us"><span>About Us</span></a>
     </aside>
 
     <!-- Main Content Area -->
@@ -195,6 +195,19 @@
                 confirmOverlay.classList.add('hidden');
                 authOverlay.classList.add('hidden');
             }
+        });
+
+        function setSidebarState(open) {
+            document.body.classList.toggle('nav-open', open);
+            localStorage.setItem('sidebarOpen', open ? '1' : '0');
+        }
+
+        if (localStorage.getItem('sidebarOpen') === '1') {
+            setSidebarState(true);
+        }
+
+        document.querySelector('.menu-icon')?.addEventListener('click', () => {
+            setSidebarState(!document.body.classList.contains('nav-open'));
         });
     </script>
 

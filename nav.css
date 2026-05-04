@@ -50,8 +50,19 @@
     padding-top: 30px;
     gap: 40px;
     z-index: 90;
-    transition: width 0.25s ease, opacity 0.25s ease, padding 0.25s ease;
+    transition: width 0.25s ease, padding 0.25s ease;
     overflow: hidden;
+}
+
+body.nav-open .sidebar {
+    width: 220px;
+    align-items: flex-start;
+    padding-left: 16px;
+}
+
+body.nav-open .main-content,
+body.nav-open .footer {
+    margin-left: 220px;
 }
 
 .sidebar-logout {
@@ -90,11 +101,30 @@
     text-decoration: none;
     width: 56px;
     height: 56px;
+    overflow: hidden;
+}
+
+body.nav-open .nav-item {
+    width: calc(100% - 32px);
+    justify-content: flex-start;
+    padding-left: 16px;
 }
 
 .nav-icon {
     width: 24px;
     height: 24px;
+}
+
+.nav-item span {
+    display: none;
+    margin-left: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+body.nav-open .nav-item span {
+    display: inline-block;
 }
 
 .nav-item:hover,
