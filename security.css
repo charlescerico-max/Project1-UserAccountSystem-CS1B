@@ -49,12 +49,17 @@ html, body {
    Shared navigation styles are provided by nav.css */
 
 .main-content {
-    margin-left: 70px;
+    margin-left: 0;
     padding: 100px 24px 40px;
     min-height: calc(100vh - 60px);
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    transition: margin-left 0.25s ease;
+}
+
+body.nav-open .main-content {
+    margin-left: 220px;
 }
 
 .security-panel {

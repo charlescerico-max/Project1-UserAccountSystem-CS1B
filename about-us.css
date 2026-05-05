@@ -45,13 +45,18 @@ html, body {
 .pill-6 { width: 40vw; height: 120px; bottom: 35%; left: -25%; }
 
 .main-content {
-    margin-left: 70px;
+    margin-left: 0;
     padding: 100px 24px 48px;
     min-height: calc(100vh - 60px);
     display: flex;
     justify-content: center;
     box-sizing: border-box;
     z-index: 2;
+    transition: margin-left 0.25s ease;
+}
+
+body.nav-open .main-content {
+    margin-left: 220px;
 }
 
 .about-panel {
@@ -144,11 +149,15 @@ html, body {
 }
 
 .footer {
-    margin-left: 70px;
+    margin-left: 0;
     padding: 18px 24px;
     color: #888;
     font-size: 0.9rem;
     text-align: center;
+}
+
+body.nav-open .footer {
+    margin-left: 220px;
 }
 
 @media (max-width: 900px) {
