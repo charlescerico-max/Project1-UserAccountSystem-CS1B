@@ -1,0 +1,205 @@
+:root {
+    --page-bg: whitesmoke;
+    --panel-bg: rgba(255,255,255,0.92);
+    --panel-border: rgba(0,0,0,0.08);
+    --text: #111;
+    --muted: #575757;
+    --shadow-light: #ffffff;
+    --shadow-dark: #d5d9e2;
+    --sidebar-bg: #2a2a2a;     
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--page-bg);
+    color: var(--text);
+    overflow-x: hidden;
+}
+
+.background-container {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+}
+
+.pill {
+    position: absolute;
+    background: var(--page-bg);
+    border-radius: 100px;
+    transform: rotate(-45deg);
+    box-shadow: 15px 15px 30px var(--shadow-dark), -15px -15px 30px var(--shadow-light);
+}
+
+.pill-1 { width: 120vw; height: 120px; top: -20%; right: -10%; }
+.pill-2 { width: 80vw; height: 120px; top: 5%; right: -20%; }
+.pill-3 { width: 50vw; height: 120px; top: 30%; right: -15%; }
+.pill-4 { width: 100vw; height: 120px; bottom: -15%; left: -20%; }
+.pill-5 { width: 70vw; height: 120px; bottom: 10%; left: -15%; }
+.pill-6 { width: 40vw; height: 120px; bottom: 35%; left: -25%; }
+
+/* --- Top Navigation and Sidebar ---
+   Shared navigation styles are provided by nav.css */
+
+.main-content {
+    margin-left: 0;
+    padding: 100px 24px 40px;
+    min-height: calc(100vh - 60px);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    transition: margin-left 0.25s ease;
+}
+
+body.nav-open .main-content {
+    margin-left: 220px;
+}
+
+.security-panel {
+    width: min(760px, calc(100% - 48px));
+    padding: 48px 40px;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 32px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.12);
+    z-index: 2;
+}
+
+.security-heading {
+    max-width: 620px;
+    margin-bottom: 36px;
+}
+
+.user-tag {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.security-heading h1 {
+    margin: 0 0 12px;
+    font-size: clamp(2rem, 2.5vw, 2.6rem);
+    line-height: 1.05;
+}
+
+.security-heading p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 610px;
+}
+
+.security-form {
+    display: grid;
+    gap: 20px;
+}
+
+.field-label {
+    display: block;
+    font-size: 0.92rem;
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.field-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.85);
+    border-radius: 50px;
+    padding: 10px 18px;
+    border: 1px solid rgba(0,0,0,0.08);
+}
+
+.field-row input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.98rem;
+    color: #111;
+}
+
+.form-message {
+    margin: 0 0 6px;
+    min-height: 1.4rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.icon-button {
+    border: none;
+    background: transparent;
+    color: #777;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 999px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.icon-button:hover {
+    background: rgba(0,0,0,0.06);
+    color: #333;
+}
+
+.btn-primary {
+    width: 100%;
+    border: none;
+    border-radius: 999px;
+    padding: 16px 20px;
+    background: #000;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.btn-primary:hover {
+    background: #222;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 840px) {
+    .main-content {
+        padding-top: 90px;
+    }
+
+    .security-panel {
+        padding: 34px 24px;
+    }
+}
+
+@media (max-width: 620px) {
+    .main-content {
+        margin-left: 0;
+        padding: 84px 16px 24px;
+    }
+
+    .sidebar {
+        position: relative;
+        top: auto;
+        left: auto;
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        justify-content: center;
+        padding: 12px 0;
+        gap: 16px;
+    }
+
+    .security-panel {
+        width: 100%;
+        border-radius: 24px;
+    }
+}
