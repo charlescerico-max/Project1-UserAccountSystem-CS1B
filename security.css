@@ -28,6 +28,7 @@ html, body {
     position: fixed;
     inset: 0;
     z-index: 1;
+    pointer-events: none; /* Allow clicks to pass through to elements behind */
 }
 
 .pill {
@@ -47,6 +48,14 @@ html, body {
 
 /* --- Top Navigation and Sidebar ---
    Shared navigation styles are provided by nav.css */
+
+/* Ensure menu icon is clickable */
+.menu-icon {
+    position: relative;
+    z-index: 101;
+    pointer-events: auto;
+    user-select: none;
+}
 
 .main-content {
     margin-left: 0;

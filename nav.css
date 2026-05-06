@@ -67,9 +67,8 @@ body.nav-open .footer {
 
 .sidebar-logout {
     margin-top: auto;
-    margin-bottom: 20px;
-    width: calc(100% - 16px);
-    max-width: 120px;
+    margin-bottom: 2px;
+    width: 160px;
     padding: 10px 14px;
     border: none;
     border-radius: 999px;
@@ -78,15 +77,28 @@ body.nav-open .footer {
     font-size: 0.95rem;
     font-weight: 700;
     cursor: pointer;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     gap: 8px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    position: fixed;
+    left: 20px;
+    bottom: 30px;
+    z-index: 95;
+}
+
+body.nav-open .sidebar-logout {
+    display: flex;
 }
 
 .sidebar-logout:hover {
     background: #f0f0f0;
+}
+
+.sidebar-logout img {
+    width: 18px;
+    height: 18px;
 }
 
 .nav-item {
@@ -140,4 +152,81 @@ body.nav-open .nav-item span {
 .nav-item.active img,
 .nav-item:hover img {
     filter: brightness(1) invert(1);
+}
+
+.logout-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+    padding: 20px;
+}
+
+.logout-modal.show {
+    display: flex;
+}
+
+.logout-modal-content {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 32px 28px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    width: min(480px, 100%);
+}
+
+.logout-modal-title {
+    margin: 0 0 12px;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #111;
+}
+
+.logout-modal-text {
+    margin: 0 0 24px;
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.logout-modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.logout-modal-cancel,
+.logout-modal-confirm {
+    min-width: 120px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 999px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+    font-size: 0.95rem;
+}
+
+.logout-modal-cancel {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.logout-modal-cancel:hover {
+    background: #e0e0e0;
+    transform: translateY(-1px);
+}
+
+.logout-modal-confirm {
+    background: #dc3545;
+    color: white;
+}
+
+.logout-modal-confirm:hover {
+    background: #c82333;
+    transform: translateY(-1px);
 }

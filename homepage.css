@@ -31,6 +31,7 @@ body, html {
     height: 100vh;
     z-index: 1; /* Keeps the background behind your content */
     overflow: hidden;
+    pointer-events: none; /* Allow clicks to pass through to elements behind */
 }
 
 /* Base styling for all pill shapes */
@@ -94,6 +95,14 @@ body, html {
 
 /* --- Top Navigation and Sidebar ---
    Shared navigation styles are provided by nav.css */
+
+/* Ensure menu icon is clickable */
+.menu-icon {
+    position: relative;
+    z-index: 101;
+    pointer-events: auto;
+    user-select: none;
+}
 
 /* --- Main Content & Profile Layout --- */
 .main-content {

@@ -27,6 +27,7 @@ html, body {
     position: fixed;
     inset: 0;
     z-index: 1;
+    pointer-events: none; /* Allow clicks to pass through to elements behind */
 }
 
 .pill {
@@ -43,6 +44,14 @@ html, body {
 .pill-4 { width: 100vw; height: 120px; bottom: -15%; left: -20%; }
 .pill-5 { width: 70vw; height: 120px; bottom: 10%; left: -15%; }
 .pill-6 { width: 40vw; height: 120px; bottom: 35%; left: -25%; }
+
+/* Ensure menu icon is clickable */
+.menu-icon {
+    position: relative;
+    z-index: 101;
+    pointer-events: auto;
+    user-select: none;
+}
 
 .main-content {
     margin-left: 0;
