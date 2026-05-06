@@ -34,6 +34,7 @@
         <a href="admin-profile.html" class="nav-item active"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/user.png" alt="Admin Profile"><span>Profile</span></a>
         <a href="admin-security.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/lock--v1.png" alt="Security"><span>Security</span></a>
         <a href="admin-about-us.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/info.png" alt="About Us"><span>About Us</span></a>
+        <button class="sidebar-logout" id="logoutBtn"><img src="https://img.icons8.com/ios-filled/50/logout-rounded.png" alt="Logout">Logout</button>
     </aside>
 
     <!-- Main Content Area -->
@@ -95,7 +96,16 @@
     </main>
     <button id="deleteAccountBtn" type="button" class="btn-delete">Delete Account</button>
 
-        <footer class="footer">© 2026. All Rights Reserved | Three Musketeers</footer>
+        <div class="logout-modal" id="logoutModal">
+            <div class="logout-modal-content">
+                <h2 class="logout-modal-title">Logout</h2>
+                <p class="logout-modal-text">Are you sure you want to logout?</p>
+                <div class="logout-modal-actions">
+                    <button class="logout-modal-cancel" id="cancelLogout">Cancel</button>
+                    <button class="logout-modal-confirm" id="confirmLogout">Logout</button>
+                </div>
+            </div>
+        </div>
 
     <div class="overlay hidden" id="confirmOverlay">
         <div class="confirm-box">
@@ -212,6 +222,48 @@
                 authOverlay.classList.add('hidden');
             }
         });
+
+        // Logout functionality
+
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        if (logoutBtn) {
+
+            logoutBtn.addEventListener('click', () => {
+
+                document.getElementById('logoutModal').classList.add('show');
+
+            });
+
+        }
+
+        const logoutModal = document.getElementById('logoutModal');
+
+        if (logoutModal) {
+
+            logoutModal.addEventListener('click', (event) => {
+
+                if (event.target === logoutModal) {
+
+                    logoutModal.classList.remove('show');
+
+                }
+
+            });
+
+            document.getElementById('cancelLogout')?.addEventListener('click', () => {
+
+                logoutModal.classList.remove('show');
+
+            });
+
+            document.getElementById('confirmLogout')?.addEventListener('click', () => {
+
+                window.location.href = 'login/index.html';
+
+            });
+
+        }
     </script>
 
 </body>
