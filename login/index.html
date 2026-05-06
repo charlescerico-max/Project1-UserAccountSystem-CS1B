@@ -21,7 +21,6 @@
         <div class="pill pill-6"></div>
     </div>
 
-
 <div class="login-card">
     <!-- Left Side: Login Form -->
     <div class="login-left">
@@ -49,7 +48,7 @@
                 </label>
                 
                 <div class="role-select">
-                    <select required>
+                    <select id="roleSelect" required>
                         <option value="" disabled selected>Select your role</option>
                         <option value="admin">Admin</option>
                         <option value="user">User</option>
@@ -84,7 +83,15 @@
     // Handle form submission
     document.getElementById('loginForm').addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent actual form submission
-        window.location.href = '../homepage.html'; // Redirect to homepage
+        
+        const role = document.getElementById('roleSelect').value;
+        
+        // Redirect based on selected role
+        if (role === 'admin') {
+            window.location.href = '../admin-dashboard.html';
+        } else if (role === 'user') {
+            window.location.href = '../homepage.html';
+        }
     });
 </script>
 </body>

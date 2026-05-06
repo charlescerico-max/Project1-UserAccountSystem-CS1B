@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Flintlock</title>
+    <link rel="stylesheet" href="nav.css">
+    <link rel="stylesheet" href="about-us.css">
+</head>
+<body>
+    <div class="background-container">
+        <div class="pill pill-1"></div>
+        <div class="pill pill-2"></div>
+        <div class="pill pill-3"></div>
+        <div class="pill pill-4"></div>
+        <div class="pill pill-5"></div>
+        <div class="pill pill-6"></div>
+    </div>
+
+    <nav class="top-navbar">
+        <div class="nav-left">
+            <div class="menu-icon">☰</div>
+            <img src="../assets/logo-name-white.png" alt="Flintlock Logo" class="nav-logo-img">
+        </div>
+    </nav>
+
+    <aside class="sidebar">
+        <a href="admin-dashboard.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/wrench.png" alt="Home"><span>Dashboard</span></a>
+        <a href="admin-profile.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/user.png" alt="Profile"><span>Profile</span></a>
+        <a href="admin-security.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/lock--v1.png" alt="Security"><span>Security</span></a>
+        <a href="admin-about-us.html" class="nav-item active"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/info.png" alt="About Us"><span>About Us</span></a>
+    </aside>
+
+    <main class="main-content">
+        <section class="about-panel">
+            <div class="about-heading">
+                <h1>About us</h1>
+            </div>
+
+            <div class="about-grid">
+                <div class="about-section">
+                    <h2>Our Mission</h2>
+                    <p>Flintlock aims to serve its users wholeheartedly with their top of the line user management system and database security.</p>
+                </div>
+                <div class="about-section">
+                    <h2>Our Vision</h2>
+                    <p>The Three Musketeers strive to compete at a global scale and become a reputable host for user management systems</p>
+                </div>
+                <div class="about-section full-width">
+                    <h2>Our Story</h2>
+                    <p>The Three Musketeers Development Group was established by young aspiring professional developers; Charles, Dwaynne, and France. They envisioned creating platforms for user connectivity and ease of information sharing. Flintlock was created with the intention of prioritizing its users and fulfilling the developers’ goals.</p>
+                </div>
+            </div>
+
+            <div class="contact-card">
+                <h2>Contact us</h2>
+                <div class="contact-item">
+                    <a href="mailto:threemusketeers03330@gmail.com?subject=Tour%20Inquiry&body=Hi,%20I%20would%20like%20to%20ask%20about%20your%20services.">
+                        <img class="contact-icon" src="https://img.icons8.com/fluency/48/000000/gmail-new.png" alt="Gmail icon">
+                    </a>
+                    <a href="mailto:threemusketeers03330@gmail.com?subject=Tour%20Inquiry&body=Hi,%20I%20would%20like%20to%20ask%20about%20your%20services.">threemusketeers03330@gmail.com</a>
+                </div>
+                <div class="contact-item">
+                    <a href="https://www.facebook.com/profile.php?id=61589113474720" target="_blank" rel="noreferrer">
+                        <img class="contact-icon" src="https://img.icons8.com/color/48/000000/facebook-new.png" alt="Facebook icon">
+                    </a>
+                    <a href="https://www.facebook.com/profile.php?id=61589113474720" target="_blank" rel="noreferrer">Three Musketeers Dev</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">© 2026. All Rights Reserved | Three Musketeers</footer>
+
+    <script>
+        function setSidebarState(open) {
+            document.body.classList.toggle('nav-open', open);
+            localStorage.setItem('sidebarOpen', open ? '1' : '0');
+        }
+
+        if (localStorage.getItem('sidebarOpen') === '1') {
+            setSidebarState(true);
+        }
+
+        document.querySelector('.menu-icon')?.addEventListener('click', () => {
+            setSidebarState(!document.body.classList.contains('nav-open'));
+        });
+    </script>
+</body>
+</html>

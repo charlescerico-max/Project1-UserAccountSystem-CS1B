@@ -30,9 +30,10 @@
 
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
-        <a href="admin-dashboard.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/wrench.png" alt="Dashboard"></a>
-        <a href="admin-profile.html" class="nav-item active"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/user.png" alt="Admin Profile"></a>
-        <a href="admin-security.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/lock--v1.png" alt="Security"></a>
+        <a href="admin-dashboard.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/wrench.png" alt="Dashboard"><span>Dashboard</span></a>
+        <a href="admin-profile.html" class="nav-item active"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/user.png" alt="Admin Profile"><span>Profile</span></a>
+        <a href="admin-security.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/lock--v1.png" alt="Security"><span>Security</span></a>
+        <a href="admin-about-us.html" class="nav-item"><img class="nav-icon" src="https://img.icons8.com/ios-filled/50/info.png" alt="About Us"><span>About Us</span></a>
     </aside>
 
     <!-- Main Content Area -->
@@ -92,9 +93,54 @@
 
         </div>
     </main>
-    <button type="button" class="btn-delete">Delete Account</button>
+    <button id="deleteAccountBtn" type="button" class="btn-delete">Delete Account</button>
+
+        <footer class="footer">© 2026. All Rights Reserved | Three Musketeers</footer>
+
+    <div class="overlay hidden" id="confirmOverlay">
+        <div class="confirm-box">
+            <p class="confirm-title">Are you sure you want to delete your account?</p>
+            <p class="confirm-subtitle">This cannot be undone.</p>
+            <div class="confirm-actions">
+                <button id="cancelDeleteBtn" type="button" class="btn-cancel">No</button>
+                <button id="proceedDeleteBtn" type="button" class="btn-yes">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay hidden" id="authOverlay">
+        <div class="confirm-box delete-step">
+            <p class="confirm-title">Confirm deletion</p>
+            <p class="confirm-subtitle">Please enter your password once more before account removal.</p>
+            <div class="auth-group">
+                <label for="currentPassword">Current Password</label>
+                <input type="password" id="currentPassword" placeholder="Enter your password">
+            </div>
+            <div class="auth-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm your password">
+            </div>
+            <div class="confirm-actions">
+                <button id="cancelAuthBtn" type="button" class="btn-cancel">Cancel</button>
+                <button id="confirmDeleteBtn" type="button" class="btn-yes">Delete account</button>
+            </div>
+        </div>
+    </div>
 
     <script>
+        function setSidebarState(open) {
+            document.body.classList.toggle('nav-open', open);
+            localStorage.setItem('sidebarOpen', open ? '1' : '0');
+        }
+
+        if (localStorage.getItem('sidebarOpen') === '1') {
+            setSidebarState(true);
+        }
+
+        document.querySelector('.menu-icon')?.addEventListener('click', () => {
+            setSidebarState(!document.body.classList.contains('nav-open'));
+        });
+
         function enableField(id) {
             const field = document.getElementById(id);
             if (!field) return;
@@ -109,6 +155,62 @@
                 if (!target) return;
                 enableField(target);
             });
+        });
+
+        // Delete Account Functionality
+        const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+        const confirmOverlay = document.getElementById('confirmOverlay');
+        const authOverlay = document.getElementById('authOverlay');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+        const proceedDeleteBtn = document.getElementById('proceedDeleteBtn');
+        const cancelAuthBtn = document.getElementById('cancelAuthBtn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const currentPassword = document.getElementById('currentPassword');
+        const confirmPassword = document.getElementById('confirmPassword');
+
+        deleteAccountBtn.addEventListener('click', () => {
+            confirmOverlay.classList.remove('hidden');
+        });
+
+        cancelDeleteBtn.addEventListener('click', () => {
+            confirmOverlay.classList.add('hidden');
+        });
+
+        proceedDeleteBtn.addEventListener('click', () => {
+            confirmOverlay.classList.add('hidden');
+            authOverlay.classList.remove('hidden');
+            currentPassword.focus();
+        });
+
+        cancelAuthBtn.addEventListener('click', () => {
+            authOverlay.classList.add('hidden');
+            currentPassword.value = '';
+            confirmPassword.value = '';
+        });
+
+        confirmDeleteBtn.addEventListener('click', () => {
+            const currentValue = currentPassword.value.trim();
+            const confirmValue = confirmPassword.value.trim();
+
+            if (!currentValue || !confirmValue) {
+                alert('Please fill in both password fields.');
+                return;
+            }
+
+            if (currentValue !== confirmValue) {
+                alert('Passwords do not match.');
+                confirmPassword.focus();
+                return;
+            }
+
+            window.location.href = 'login/index.html';
+        });
+
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                confirmOverlay.classList.add('hidden');
+                authOverlay.classList.add('hidden');
+            }
         });
     </script>
 
