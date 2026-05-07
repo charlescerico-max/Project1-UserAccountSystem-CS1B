@@ -5,13 +5,11 @@ public class App {
 
     public static void main(String[] args) throws Exception {
 
-        // --- DB credentials ---
         String url = "jdbc:mysql://localhost:3306/accsystem_db?serverTimezone=UTC";
         String user = "root";
-        String password = ""; // XAMPP default = blank password
+        String password = "";
 
         try {
-            // Try to connect
             Connection conn = DriverManager.getConnection(url, user, password);
 
             // If successful, show a popup!
@@ -25,7 +23,6 @@ public class App {
             conn.close();
 
         } catch (SQLException e) {
-            // If failed, show error popup
             JOptionPane.showMessageDialog(
                 null,
                 "Connection Failed!\n\n" + e.getMessage(),
