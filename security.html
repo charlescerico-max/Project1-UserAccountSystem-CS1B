@@ -39,7 +39,7 @@
     <main class="main-content">
         <section class="security-panel">
             <div class="security-heading">
-                <span class="user-tag">First Name Last Name • Flintlock</span>
+                <span class="user-tag" id="security-user-tag">Loading… • Flintlock</span>
                 <h1>Change password</h1>
                 <p>The password must be at least 8 characters long and include at least one uppercase letter, one number (0–9), and one special character such as @, #, !, %, or _.</p>
             </div>
@@ -47,19 +47,19 @@
             <form class="security-form">
                 <label class="field-label" for="current-password">Current Password</label>
                 <div class="field-row">
-                    <input id="current-password" type="password" value="password123">
+                    <input id="current-password" type="password" autocomplete="current-password" placeholder="Enter current password">
                     <button type="button" class="icon-button" data-toggle="current-password">👁</button>
                 </div>
 
                 <label class="field-label" for="new-password">Enter your new password</label>
                 <div class="field-row">
-                    <input id="new-password" type="password" value="newpassword123">
+                    <input id="new-password" type="password" autocomplete="new-password" placeholder="Enter new password">
                     <button type="button" class="icon-button" data-toggle="new-password">👁</button>
                 </div>
 
                 <label class="field-label" for="confirm-password">Confirm your new password</label>
                 <div class="field-row">
-                    <input id="confirm-password" type="password" value="newpassword123">
+                    <input id="confirm-password" type="password" autocomplete="new-password" placeholder="Confirm new password">
                     <button type="button" class="icon-button" data-toggle="confirm-password">👁</button>
                 </div>
 
@@ -69,17 +69,26 @@
         </section>
     </main>
     <script>
-        const currentStoredPassword = 'password123';
+        const API_ORIGIN = window.API_ORIGIN || 'http://localhost:8080';
 
         const securityForm = document.querySelector('.security-form');
         const currentInput = document.getElementById('current-password');
         const newInput = document.getElementById('new-password');
         const confirmInput = document.getElementById('confirm-password');
         const messageBox = document.getElementById('security-message');
+        const submitBtn = securityForm.querySelector('button[type="submit"]');
 
         function showMessage(text, isError = true) {
             messageBox.textContent = text;
             messageBox.style.color = isError ? '#c0392b' : '#1a8f1a';
+        }
+
+        function meetsPasswordPolicy(password) {
+            if (!password || password.length < 8) return false;
+            if (!/[A-Z]/.test(password)) return false;
+            if (!/[0-9]/.test(password)) return false;
+            if (!/[@#!%_]/.test(password)) return false;
+            return true;
         }
 
         function togglePasswordVisibility(targetId) {
@@ -95,15 +104,46 @@
             });
         });
 
-        securityForm.addEventListener('submit', event => {
+        async function loadHeadingFromProfile() {
+            const userId = localStorage.getItem('user_id');
+            const tag = document.getElementById('security-user-tag');
+            if (!userId) {
+                alert('No login session found. Please log in again.');
+                window.location.href = 'login/index.html';
+                return;
+            }
+            try {
+                const response = await fetch(API_ORIGIN + '/user/profile?user_id=' + encodeURIComponent(userId));
+                const raw = await response.text();
+                const data = raw ? JSON.parse(raw) : {};
+                if (!response.ok || !data.success || !data.data) {
+                    tag.textContent = 'Account • Flintlock';
+                    return;
+                }
+                const d = data.data;
+                const full = (d.first_name + ' ' + d.last_name).trim() || 'Account';
+                tag.textContent = full + ' • Flintlock';
+            } catch (e) {
+                document.getElementById('security-user-tag').textContent = 'Account • Flintlock';
+            }
+        }
+
+        securityForm.addEventListener('submit', async event => {
             event.preventDefault();
+
+            const userId = localStorage.getItem('user_id');
+            if (!userId) {
+                showMessage('No login session found. Please log in again.');
+                window.location.href = 'login/index.html';
+                return;
+            }
 
             const currentValue = currentInput.value.trim();
             const newValue = newInput.value.trim();
             const confirmValue = confirmInput.value.trim();
 
-            if (currentValue !== currentStoredPassword) {
-                showMessage('Current password does not match our records.');
+            if (!currentValue) {
+                showMessage('Please enter your current password.');
                 return;
             }
 
@@ -117,11 +157,55 @@
                 return;
             }
 
-            showMessage('Password changed successfully.', false);
-            currentInput.value = '';
-            newInput.value = '';
-            confirmInput.value = '';
+            if (!meetsPasswordPolicy(newValue)) {
+                showMessage('The password must be at least 8 characters long and include at least one uppercase letter, one number (0–9), and one special character such as @, #, !, %, or _.');
+                return;
+            }
+
+            const formData =
+                'user_id=' + encodeURIComponent(userId) +
+                '&current_password=' + encodeURIComponent(currentValue) +
+                '&new_password=' + encodeURIComponent(newValue);
+
+            submitBtn.disabled = true;
+            showMessage('');
+
+            try {
+                const response = await fetch(API_ORIGIN + '/user/changePassword', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                });
+                const rawText = await response.text();
+                let data;
+                try {
+                    data = rawText ? JSON.parse(rawText) : {};
+                } catch (e) {
+                    throw new Error('Invalid server response');
+                }
+
+                if (!response.ok || !data.success) {
+                    showMessage(data.message || ('Could not update password (HTTP ' + response.status + ').'));
+                    return;
+                }
+
+                showMessage(data.message || 'Password changed successfully.', false);
+                currentInput.value = '';
+                newInput.value = '';
+                confirmInput.value = '';
+            } catch (err) {
+                console.error(err);
+                const detail = err && err.message ? err.message : '';
+                showMessage(
+                    'Cannot connect to ' + API_ORIGIN + '. Double‑click run-api.bat in the project folder, wait until you see "Server started on port 8080", then try again.' +
+                    (detail ? ' (' + detail + ')' : '')
+                );
+            } finally {
+                submitBtn.disabled = false;
+            }
         });
+
+        loadHeadingFromProfile();
 
         function setSidebarState(open) {
             document.body.classList.toggle('nav-open', open);
@@ -167,6 +251,8 @@
             });
 
             logoutModal.querySelector('#confirmLogout')?.addEventListener('click', () => {
+                localStorage.removeItem('user_id');
+                localStorage.removeItem('role');
                 window.location.href = 'login/index.html';
             });
         }

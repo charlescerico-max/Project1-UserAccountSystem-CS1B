@@ -26,24 +26,24 @@
             <img src="../assets/login-images/logo-name.png" alt="Flintlock Logo" class="brand-logo">
             <h1 class="login-title">Sign up</h1>
             
-            <form action="#" method="POST">
+            <form id="signupForm" action="#" method="POST">
                 <!-- Name Row -->
                 <div class="input-label">Name</div>
                 <div class="input-row">
-                    <input type="text" placeholder="First Name" class="standard-input" required>
-                    <input type="text" placeholder="Last Name" class="standard-input" required>
+                    <input type="text" id="firstName" name="firstName" placeholder="First Name" class="standard-input" required>
+                    <input type="text" id="lastName" name="lastName" placeholder="Last Name" class="standard-input" required>
                 </div>
 
                 <!-- Username Row -->
                 <div class="input-label">Username</div>
                 <div class="input-group signup-group">
-                    <input type="text" placeholder="e.g: juandelacruz396239" required>
+                    <input type="text" id="username" name="username" placeholder="e.g: juandelacruz396239" required>
                 </div>
 
                 <!-- Email Row -->
                 <div class="input-label">Email Address</div>
                 <div class="input-group signup-group">
-                    <input type="email" placeholder="e.g: juandelacruz@gmail.com" required>
+                    <input type="email" id="email" name="email" placeholder="e.g: juandelacruz@gmail.com" required>
                 </div>
 
                 <!-- Passwords Row -->
@@ -53,10 +53,10 @@
                 </div>
                 <div class="input-row">
                     <div class="input-group signup-group">
-                        <input type="password" placeholder="*************" required>
+                        <input type="password" id="password" name="password" placeholder="*************" required>
                     </div>
                     <div class="input-group signup-group">
-                        <input type="password" placeholder="*************" required>
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="*************" required>
                     </div>
                 </div>
 
@@ -84,5 +84,52 @@
         </div>
     </div>
 
+<script>
+    document.getElementById('signupForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const username = document.getElementById('username').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const confirmPassword = document.getElementById('confirmPassword').value.trim();
+
+        if (password !== confirmPassword) {
+            alert('Passwords do not match.');
+            return;
+        }
+
+        const formData =
+            'firstName=' + encodeURIComponent(firstName) +
+            '&lastName=' + encodeURIComponent(lastName) +
+            '&username=' + encodeURIComponent(username) +
+            '&email=' + encodeURIComponent(email) +
+            '&password=' + encodeURIComponent(password) +
+            '&confirmPassword=' + encodeURIComponent(confirmPassword);
+
+        try {
+            const response = await fetch('http://localhost:8080/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                alert(data.message || 'Unable to create account.');
+                return;
+            }
+
+            alert('Account created successfully! You can now log in.');
+            window.location.href = '../login/index.html';
+        } catch (error) {
+            console.error('Signup error:', error);
+            alert('Unable to sign up. Please check if the server is running.');
+        }
+    });
+</script>
 </body>
 </html>

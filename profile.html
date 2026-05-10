@@ -78,6 +78,7 @@
                     </div>
                     <div class="input-group">
                         <input type="text" value="username" id="username" class="readonly-input full-width" readonly>
+                        <button type="button" class="input-icon" data-target="username" aria-label="Edit username">✏️</button>
                     </div>
                 </div>
 
@@ -89,6 +90,10 @@
                         <input type="email" value="user@example.com" id="email" class="readonly-input full-width" readonly>
                         <button type="button" class="input-icon" data-target="email">✏️</button>
                     </div>
+                </div>
+
+                <div class="profile-actions">
+                    <button type="button" class="btn-save-changes" id="saveProfileBtn">Save changes</button>
                 </div>
             </div>
 
@@ -147,6 +152,23 @@
             field.removeAttribute('readonly');
             field.classList.add('editable');
             field.focus();
+        }
+
+        function lockProfileFields() {
+            ['first-name', 'last-name', 'username', 'email'].forEach(function (id) {
+                const field = document.getElementById(id);
+                if (!field) return;
+                field.setAttribute('readonly', 'readonly');
+                field.classList.remove('editable');
+            });
+        }
+
+        function refreshDisplayCard() {
+            const first = document.getElementById('first-name').value.trim();
+            const last = document.getElementById('last-name').value.trim();
+            const uname = document.getElementById('username').value.trim();
+            document.getElementById('display-name').textContent = (first + ' ' + last).trim() || 'Unknown User';
+            document.getElementById('display-username').textContent = '@' + (uname || 'username');
         }
 
         document.querySelectorAll('.input-icon').forEach(button => {
@@ -243,9 +265,123 @@
             });
 
             logoutModal.querySelector('#confirmLogout')?.addEventListener('click', () => {
+                localStorage.removeItem('user_id');
+                localStorage.removeItem('role');
                 window.location.href = 'login/index.html';
             });
         }
+
+        const API_ORIGIN = window.API_ORIGIN || 'http://localhost:8080';
+
+        function parseProfileResponse(response, rawText) {
+            if (!rawText || !rawText.trim()) {
+                throw new Error('Empty response from server (HTTP ' + response.status + ').');
+            }
+            try {
+                return JSON.parse(rawText);
+            } catch (e) {
+                throw new Error('Not JSON (HTTP ' + response.status + '): ' + rawText.slice(0, 160));
+            }
+        }
+
+        async function fetchProfileOnce(userId) {
+            const url = API_ORIGIN + '/user/profile?user_id=' + encodeURIComponent(userId);
+            const response = await fetch(url);
+            const rawText = await response.text();
+            const data = parseProfileResponse(response, rawText);
+
+            if (!response.ok || !data.success || !data.data) {
+                throw new Error(data.message || ('HTTP ' + response.status));
+            }
+
+            const profile = data.data;
+            const fullName = (profile.first_name + ' ' + profile.last_name).trim();
+
+            document.getElementById('display-name').textContent = fullName || 'Unknown User';
+            document.getElementById('display-username').textContent = '@' + (profile.username || 'username');
+            document.getElementById('first-name').value = profile.first_name || '';
+            document.getElementById('last-name').value = profile.last_name || '';
+            document.getElementById('username').value = profile.username || '';
+            document.getElementById('email').value = profile.email || '';
+        }
+
+        async function loadUserProfile() {
+            const userId = localStorage.getItem('user_id');
+            if (!userId) {
+                alert('No login session found. Please log in again.');
+                window.location.href = 'login/index.html';
+                return;
+            }
+
+            try {
+                await fetchProfileOnce(userId);
+            } catch (error) {
+                console.error('Profile fetch failed:', error);
+                alert('Unable to load profile.\n\n' +
+                    (error && error.message ? error.message : String(error)) +
+                    '\n\nAPI: ' + API_ORIGIN + '/user/profile');
+            }
+        }
+
+        loadUserProfile();
+
+        document.getElementById('saveProfileBtn').addEventListener('click', async function () {
+            const userId = localStorage.getItem('user_id');
+            if (!userId) {
+                alert('No login session found. Please log in again.');
+                window.location.href = 'login/index.html';
+                return;
+            }
+
+            const firstName = document.getElementById('first-name').value.trim();
+            const lastName = document.getElementById('last-name').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+
+            if (!firstName || !lastName || !username || !email) {
+                alert('Please fill in all profile fields before saving.');
+                return;
+            }
+
+            const formData =
+                'user_id=' + encodeURIComponent(userId) +
+                '&first_name=' + encodeURIComponent(firstName) +
+                '&last_name=' + encodeURIComponent(lastName) +
+                '&username=' + encodeURIComponent(username) +
+                '&email=' + encodeURIComponent(email);
+
+            const btn = document.getElementById('saveProfileBtn');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(API_ORIGIN + '/user/updateProfile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                });
+                const rawText = await response.text();
+                let data;
+                try {
+                    data = rawText ? JSON.parse(rawText) : {};
+                } catch (e) {
+                    throw new Error('Invalid server response');
+                }
+
+                if (!response.ok || !data.success) {
+                    alert(data.message || 'Could not save profile.');
+                    return;
+                }
+
+                refreshDisplayCard();
+                lockProfileFields();
+                alert(data.message || 'Profile updated successfully.');
+            } catch (err) {
+                console.error(err);
+                alert('Unable to save profile. Check that the server is running.');
+            } finally {
+                btn.disabled = false;
+            }
+        });
     </script>
 
 </body>

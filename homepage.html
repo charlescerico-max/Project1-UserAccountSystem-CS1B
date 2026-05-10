@@ -63,20 +63,20 @@
                 <!-- Name Row -->
                 <div class="input-label">Name</div>
                 <div class="input-row">
-                    <input type="text" value="First Name" class="readonly-input" readonly>
-                    <input type="text" value="Last Name" class="readonly-input" readonly>
+                    <input type="text" id="first-name-input" value="First Name" class="readonly-input" readonly>
+                    <input type="text" id="last-name-input" value="Last Name" class="readonly-input" readonly>
                 </div>
 
                 <!-- Username Row -->
                 <div class="input-label">Username</div>
                 <div class="input-group">
-                    <input type="text" value="e.g: juandelacruz396239" class="readonly-input full-width" readonly>
+                    <input type="text" id="username-input" value="e.g: juandelacruz396239" class="readonly-input full-width" readonly>
                 </div>
 
                 <!-- Email Row -->
                 <div class="input-label">Email Address</div>
                 <div class="input-group">
-                    <input type="email" value="e.g: juandelacruz@gmail.com" class="readonly-input full-width" readonly>
+                    <input type="email" id="email-input" value="e.g: juandelacruz@gmail.com" class="readonly-input full-width" readonly>
                 </div>
             </div>
 
@@ -128,9 +128,68 @@
             });
 
             document.getElementById('confirmLogout')?.addEventListener('click', () => {
+                localStorage.removeItem('user_id');
+                localStorage.removeItem('role');
                 window.location.href = 'login/index.html';
             });
-        }  
+        }
+
+        // Same machine as Live Server (127.0.0.1:5500); backend must listen on 8080.
+        // Override in console: window.API_ORIGIN = 'http://localhost:8080'
+        const API_ORIGIN = window.API_ORIGIN || 'http://localhost:8080';
+
+        function parseProfileResponse(response, rawText) {
+            if (!rawText || !rawText.trim()) {
+                throw new Error('Empty response from server (HTTP ' + response.status + '). Restart Java after compiling; route is GET /user/profile.');
+            }
+            try {
+                return JSON.parse(rawText);
+            } catch (e) {
+                throw new Error('Not JSON (HTTP ' + response.status + '): ' + rawText.slice(0, 160));
+            }
+        }
+
+        async function fetchProfileOnce(userId) {
+            const url = API_ORIGIN + '/user/profile?user_id=' + encodeURIComponent(userId);
+            const response = await fetch(url);
+            const rawText = await response.text();
+            const data = parseProfileResponse(response, rawText);
+
+            if (!response.ok || !data.success || !data.data) {
+                const msg = data.message || ('HTTP ' + response.status);
+                throw new Error(msg);
+            }
+
+            const profile = data.data;
+            const fullName = (profile.first_name + ' ' + profile.last_name).trim();
+
+            document.getElementById('display-name').textContent = fullName || 'Unknown User';
+            document.getElementById('display-username').textContent = '@' + (profile.username || 'username');
+            document.getElementById('first-name-input').value = profile.first_name || '';
+            document.getElementById('last-name-input').value = profile.last_name || '';
+            document.getElementById('username-input').value = profile.username || '';
+            document.getElementById('email-input').value = profile.email || '';
+        }
+
+        async function loadUserProfile() {
+            const userId = localStorage.getItem('user_id');
+            if (!userId) {
+                alert('No login session found. Please log in again.');
+                window.location.href = 'login/index.html';
+                return;
+            }
+
+            try {
+                await fetchProfileOnce(userId);
+            } catch (error) {
+                console.error('Profile fetch failed:', error);
+                alert('Unable to load profile.\n\n' +
+                    (error && error.message ? error.message : String(error)) +
+                    '\n\nAPI: ' + API_ORIGIN + '/user/profile');
+            }
+        }
+
+        loadUserProfile();
     </script>
 </body>
 </html>
