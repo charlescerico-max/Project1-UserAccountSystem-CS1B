@@ -58,6 +58,7 @@ public class Application {
         server.createContext("/login", new LoginHandler());
         server.createContext("/user/login", new LoginHandler());
         server.createContext("/admin/login", new LoginHandler());
+        server.createContext("/user/profile", new UserProfileHandler());
         server.createContext("/signup", new SignupHandler());
         server.setExecutor(null); // creates a default executor
         server.start();
@@ -337,6 +338,104 @@ public class Application {
                 }
             }
             return 0;
+        }
+    }
+
+    static class UserProfileHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, OPTIONS");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+            if ("OPTIONS".equals(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(200, -1);
+                return;
+            }
+
+            if (!"GET".equals(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 405, "{\"success\":false, \"message\":\"Method not allowed\"}");
+                return;
+            }
+
+            String query = exchange.getRequestURI().getQuery();
+            Map<String, String> queryParams = parseQueryParams(query);
+            String userIdRaw = queryParams.get("user_id");
+            if (userIdRaw == null || userIdRaw.trim().isEmpty()) {
+                sendJsonResponse(exchange, 400, "{\"success\":false, \"message\":\"user_id is required\"}");
+                return;
+            }
+
+            int userId;
+            try {
+                userId = Integer.parseInt(userIdRaw.trim());
+            } catch (NumberFormatException e) {
+                sendJsonResponse(exchange, 400, "{\"success\":false, \"message\":\"user_id must be a number\"}");
+                return;
+            }
+
+            try {
+                String profileJson = getUserProfileJson(userId);
+                if (profileJson == null) {
+                    sendJsonResponse(exchange, 404, "{\"success\":false, \"message\":\"User not found\"}");
+                    return;
+                }
+                sendJsonResponse(exchange, 200, profileJson);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                sendJsonResponse(exchange, 500, "{\"success\":false, \"message\":\"Profile service unavailable. Check database connection.\"}");
+            }
+        }
+
+        private Map<String, String> parseQueryParams(String query) {
+            Map<String, String> params = new HashMap<>();
+            if (query == null || query.isEmpty()) return params;
+            String[] pairs = query.split("&");
+            for (String pair : pairs) {
+                String[] keyValue = pair.split("=", 2);
+                if (keyValue.length == 2) {
+                    try {
+                        String key = URLDecoder.decode(keyValue[0], "UTF-8");
+                        String value = URLDecoder.decode(keyValue[1], "UTF-8");
+                        params.put(key, value);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return params;
+        }
+
+        private String jsonEscape(String value) {
+            if (value == null) return "";
+            return value.replace("\\", "\\\\").replace("\"", "\\\"");
+        }
+
+        private void sendJsonResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
+            byte[] body = response.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
+            exchange.sendResponseHeaders(statusCode, body.length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(body);
+            os.close();
+        }
+
+        private String getUserProfileJson(int userId) throws SQLException {
+            String sql = "SELECT first_name, last_name, username, email FROM users WHERE user_id = ?";
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (!rs.next()) {
+                        return null;
+                    }
+                    String firstName = jsonEscape(rs.getString("first_name"));
+                    String lastName = jsonEscape(rs.getString("last_name"));
+                    String username = jsonEscape(rs.getString("username"));
+                    String email = jsonEscape(rs.getString("email"));
+                    return "{\"success\":true,\"data\":{\"first_name\":\"" + firstName + "\",\"last_name\":\"" + lastName + "\",\"username\":\"" + username + "\",\"email\":\"" + email + "\"}}";
+                }
+            }
         }
     }
 }
