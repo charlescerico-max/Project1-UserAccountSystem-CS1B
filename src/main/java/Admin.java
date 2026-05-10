@@ -1,20 +1,21 @@
-public class User {
-    private int id;            
+package main.java;
+public class Admin {
+    private int adminId;       
     private String username;   
     private String email;      
     private String password;   
     private String role;       
 
-    public User(int id, String username, String email, String password, String role) {
-        this.id = id;
+    public Admin(int adminId, String username, String email, String password, String role) {
+        this.adminId = adminId;
         this.username = username;
         this.email = email;
         this.password = password;
         this.role = role;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getAdminId() { return adminId; }
+    public void setAdminId(int adminId) { this.adminId = adminId; }
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
