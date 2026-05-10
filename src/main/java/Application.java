@@ -58,6 +58,8 @@ public class Application {
         server.createContext("/login", new LoginHandler());
         server.createContext("/user/login", new LoginHandler());
         server.createContext("/admin/login", new LoginHandler());
+        // "/user/profile" prefix-matches "/user/profile/update"; POST was hitting GET-only branch. Dedicated path has no prefix clash.
+        server.createContext("/user/updateProfile", new UserProfileUpdateHandler());
         server.createContext("/user/profile", new UserProfileHandler());
         server.createContext("/signup", new SignupHandler());
         server.setExecutor(null); // creates a default executor
@@ -353,8 +355,8 @@ public class Application {
                 return;
             }
 
-            if (!"GET".equals(exchange.getRequestMethod())) {
-                sendJsonResponse(exchange, 405, "{\"success\":false, \"message\":\"Method not allowed\"}");
+            if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 405, "{\"success\":false, \"message\":\"Method not allowed. Use GET /user/profile or POST /user/updateProfile\"}");
                 return;
             }
 
@@ -435,6 +437,151 @@ public class Application {
                     String email = jsonEscape(rs.getString("email"));
                     return "{\"success\":true,\"data\":{\"first_name\":\"" + firstName + "\",\"last_name\":\"" + lastName + "\",\"username\":\"" + username + "\",\"email\":\"" + email + "\"}}";
                 }
+            }
+        }
+    }
+
+    static class UserProfileUpdateHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+            if ("OPTIONS".equals(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(200, -1);
+                return;
+            }
+
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonUtf8(exchange, 405, "{\"success\":false, \"message\":\"Method not allowed. Use POST with form body (application/x-www-form-urlencoded).\"}");
+                return;
+            }
+
+            InputStream is = exchange.getRequestBody();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+            StringBuilder body = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                body.append(line);
+            }
+
+            Map<String, String> params = parseForm(body.toString());
+            String userIdRaw = trimValue(params.get("user_id"));
+            String firstName = trimValue(params.get("first_name"));
+            String lastName = trimValue(params.get("last_name"));
+            String username = trimValue(params.get("username"));
+            String email = trimValue(params.get("email"));
+
+            if (isBlank(userIdRaw) || isBlank(firstName) || isBlank(lastName) || isBlank(username) || isBlank(email)) {
+                sendJsonUtf8(exchange, 400, "{\"success\":false, \"message\":\"user_id, first_name, last_name, username, and email are required\"}");
+                return;
+            }
+
+            int userId;
+            try {
+                userId = Integer.parseInt(userIdRaw);
+            } catch (NumberFormatException e) {
+                sendJsonUtf8(exchange, 400, "{\"success\":false, \"message\":\"user_id must be a number\"}");
+                return;
+            }
+
+            if (email.indexOf('@') < 0) {
+                sendJsonUtf8(exchange, 400, "{\"success\":false, \"message\":\"Invalid email address\"}");
+                return;
+            }
+
+            try {
+                if (!userExists(userId)) {
+                    sendJsonUtf8(exchange, 404, "{\"success\":false, \"message\":\"User not found\"}");
+                    return;
+                }
+                if (isUsernameOrEmailTakenByOther(username, email, userId)) {
+                    sendJsonUtf8(exchange, 409, "{\"success\":false, \"message\":\"Username or email is already in use\"}");
+                    return;
+                }
+
+                int rows = updateProfile(userId, firstName, lastName, username, email);
+                if (rows == 0) {
+                    sendJsonUtf8(exchange, 404, "{\"success\":false, \"message\":\"User not found\"}");
+                    return;
+                }
+                sendJsonUtf8(exchange, 200, "{\"success\":true, \"message\":\"Profile updated successfully\"}");
+            } catch (SQLException e) {
+                e.printStackTrace();
+                sendJsonUtf8(exchange, 500, "{\"success\":false, \"message\":\"Profile update unavailable. Check database connection.\"}");
+            }
+        }
+
+        private Map<String, String> parseForm(String data) {
+            Map<String, String> params = new HashMap<>();
+            if (data == null || data.isEmpty()) return params;
+            for (String pair : data.split("&")) {
+                String[] keyValue = pair.split("=", 2);
+                if (keyValue.length == 2) {
+                    try {
+                        params.put(URLDecoder.decode(keyValue[0], StandardCharsets.UTF_8.name()),
+                                URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8.name()));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return params;
+        }
+
+        private String trimValue(String value) {
+            return value == null ? null : value.trim();
+        }
+
+        private boolean isBlank(String value) {
+            return value == null || value.isEmpty();
+        }
+
+        private void sendJsonUtf8(HttpExchange exchange, int statusCode, String json) throws IOException {
+            byte[] bodyBytes = json.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
+            exchange.sendResponseHeaders(statusCode, bodyBytes.length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(bodyBytes);
+            os.close();
+        }
+
+        private boolean userExists(int userId) throws SQLException {
+            String sql = "SELECT 1 FROM users WHERE user_id = ? LIMIT 1";
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    return rs.next();
+                }
+            }
+        }
+
+        private boolean isUsernameOrEmailTakenByOther(String username, String email, int userId) throws SQLException {
+            String sql = "SELECT 1 FROM users WHERE (username = ? OR email = ?) AND user_id <> ? LIMIT 1";
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, username);
+                stmt.setString(2, email);
+                stmt.setInt(3, userId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    return rs.next();
+                }
+            }
+        }
+
+        private int updateProfile(int userId, String firstName, String lastName, String username, String email) throws SQLException {
+            String sql = "UPDATE users SET first_name = ?, last_name = ?, username = ?, email = ?, updated_by = ? WHERE user_id = ?";
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, firstName);
+                stmt.setString(2, lastName);
+                stmt.setString(3, username);
+                stmt.setString(4, email);
+                stmt.setInt(5, userId);
+                stmt.setInt(6, userId);
+                return stmt.executeUpdate();
             }
         }
     }
