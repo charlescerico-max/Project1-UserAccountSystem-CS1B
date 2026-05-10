@@ -16,6 +16,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -23,9 +24,42 @@ import com.sun.net.httpserver.HttpServer;
 
 public class Application {
 
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/accsystem_db?serverTimezone=UTC";
+    /** Local MySQL (XAMPP): disable SSL; allowPublicKeyRetrieval avoids auth failures with mysql-connector-j + MySQL 8. */
+    private static final String DB_URL =
+            "jdbc:mysql://localhost:3306/accsystem_db?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true";
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "";
+
+    static {
+        // exec-maven-plugin uses an isolated classloader; DriverManager's SPI
+        // auto-discovery sometimes misses it. Force-load the driver explicitly.
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            try {
+                Class.forName("com.mysql.jdbc.Driver");
+            } catch (ClassNotFoundException ignored) {
+                System.err.println("MySQL JDBC driver not on classpath. Run with `mvn exec:java` (uses pom dependency).");
+            }
+        }
+    }
+
+    private static String jdbcHint(SQLException e) {
+        String msg = e.getMessage();
+        if (msg == null) {
+            return "Password update unavailable. Check database connection.";
+        }
+        if (msg.contains("Communications link failure") || msg.contains("Connection refused")) {
+            return "Cannot reach MySQL. Start MySQL in XAMPP (green \"Running\") and try again.";
+        }
+        if (msg.contains("Access denied for user")) {
+            return "Database login failed. Set DB_USER / DB_PASSWORD in Application.java to match XAMPP MySQL (often root with empty password).";
+        }
+        if (msg.contains("Unknown database")) {
+            return "Database accsystem_db not found. Create it or fix DB_URL in Application.java.";
+        }
+        return "Password update unavailable. Check database connection.";
+    }
 
     private static String md5Hash(String value) {
         try {
@@ -61,6 +95,7 @@ public class Application {
         // "/user/profile" prefix-matches "/user/profile/update"; POST was hitting GET-only branch. Dedicated path has no prefix clash.
         server.createContext("/user/updateProfile", new UserProfileUpdateHandler());
         server.createContext("/user/profile", new UserProfileHandler());
+        server.createContext("/user/changePassword", new ChangePasswordHandler());
         server.createContext("/signup", new SignupHandler());
         server.setExecutor(null); // creates a default executor
         server.start();
@@ -581,6 +616,168 @@ public class Application {
                 stmt.setString(4, email);
                 stmt.setInt(5, userId);
                 stmt.setInt(6, userId);
+                return stmt.executeUpdate();
+            }
+        }
+    }
+
+    static class ChangePasswordHandler implements HttpHandler {
+
+        private static final Pattern HAS_UPPER = Pattern.compile("[A-Z]");
+        private static final Pattern HAS_DIGIT = Pattern.compile("[0-9]");
+        private static final Pattern HAS_SPECIAL = Pattern.compile("[@#!%_]");
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+            if ("OPTIONS".equals(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(200, -1);
+                return;
+            }
+
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonUtf8(exchange, 405, "{\"success\":false, \"message\":\"Method not allowed. Use POST with form body (application/x-www-form-urlencoded).\"}");
+                return;
+            }
+
+            InputStream is = exchange.getRequestBody();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+            StringBuilder body = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                body.append(line);
+            }
+
+            Map<String, String> params = parseForm(body.toString());
+            String userIdRaw = trimValue(params.get("user_id"));
+            String currentPassword = params.get("current_password");
+            String newPassword = params.get("new_password");
+
+            if (currentPassword != null) {
+                currentPassword = currentPassword.trim();
+            }
+            if (newPassword != null) {
+                newPassword = newPassword.trim();
+            }
+
+            if (isBlank(userIdRaw) || isBlank(currentPassword) || isBlank(newPassword)) {
+                sendJsonUtf8(exchange, 400, "{\"success\":false, \"message\":\"user_id, current_password, and new_password are required\"}");
+                return;
+            }
+
+            int userId;
+            try {
+                userId = Integer.parseInt(userIdRaw);
+            } catch (NumberFormatException e) {
+                sendJsonUtf8(exchange, 400, "{\"success\":false, \"message\":\"user_id must be a number\"}");
+                return;
+            }
+
+            if (!isStrongPassword(newPassword)) {
+                sendJsonUtf8(exchange, 400, "{\"success\":false, \"message\":\"Password must be at least 8 characters and include an uppercase letter, a number, and a special character (@, #, !, %, or _).\"}");
+                return;
+            }
+
+            try {
+                String currentHash = toMd5IfNeeded(currentPassword);
+                String storedHash = getStoredPasswordHash(userId);
+                if (storedHash == null) {
+                    sendJsonUtf8(exchange, 404, "{\"success\":false, \"message\":\"User not found\"}");
+                    return;
+                }
+                if (!storedHash.equalsIgnoreCase(currentHash)) {
+                    sendJsonUtf8(exchange, 401, "{\"success\":false, \"message\":\"Current password does not match our records.\"}");
+                    return;
+                }
+
+                String newHash = md5Hash(newPassword);
+                int updated = updatePassword(userId, newHash);
+                if (updated == 0) {
+                    sendJsonUtf8(exchange, 404, "{\"success\":false, \"message\":\"User not found\"}");
+                    return;
+                }
+                sendJsonUtf8(exchange, 200, "{\"success\":true, \"message\":\"Password changed successfully.\"}");
+            } catch (SQLException e) {
+                e.printStackTrace();
+                String hint = jdbcHint(e);
+                sendJsonUtf8(exchange, 500,
+                        "{\"success\":false, \"message\":\"" + jsonEscape(hint) + "\"}");
+            }
+        }
+
+        private String jsonEscape(String value) {
+            if (value == null) {
+                return "";
+            }
+            return value.replace("\\", "\\\\").replace("\"", "\\\"");
+        }
+
+        private boolean isStrongPassword(String password) {
+            if (password == null || password.length() < 8) {
+                return false;
+            }
+            return HAS_UPPER.matcher(password).find()
+                    && HAS_DIGIT.matcher(password).find()
+                    && HAS_SPECIAL.matcher(password).find();
+        }
+
+        private Map<String, String> parseForm(String data) {
+            Map<String, String> params = new HashMap<>();
+            if (data == null || data.isEmpty()) return params;
+            for (String pair : data.split("&")) {
+                String[] keyValue = pair.split("=", 2);
+                if (keyValue.length == 2) {
+                    try {
+                        params.put(URLDecoder.decode(keyValue[0], StandardCharsets.UTF_8.name()),
+                                URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8.name()));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return params;
+        }
+
+        private String trimValue(String value) {
+            return value == null ? null : value.trim();
+        }
+
+        private boolean isBlank(String value) {
+            return value == null || value.isEmpty();
+        }
+
+        private void sendJsonUtf8(HttpExchange exchange, int statusCode, String json) throws IOException {
+            byte[] bodyBytes = json.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
+            exchange.sendResponseHeaders(statusCode, bodyBytes.length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(bodyBytes);
+            os.close();
+        }
+
+        private String getStoredPasswordHash(int userId) throws SQLException {
+            String sql = "SELECT password FROM users WHERE user_id = ? LIMIT 1";
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (!rs.next()) {
+                        return null;
+                    }
+                    return rs.getString("password");
+                }
+            }
+        }
+
+        private int updatePassword(int userId, String hashedPassword) throws SQLException {
+            String sql = "UPDATE users SET password = ? WHERE user_id = ?";
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, hashedPassword);
+                stmt.setInt(2, userId);
                 return stmt.executeUpdate();
             }
         }
