@@ -129,6 +129,12 @@ body.nav-open .main-content {
     color: #111;
 }
 
+.readonly-input.username-readonly {
+    color: #333;
+    cursor: default;
+    user-select: text;
+}
+
 .form-message {
     margin: 0 0 6px;
     min-height: 1.4rem;

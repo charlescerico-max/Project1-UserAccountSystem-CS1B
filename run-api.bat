@@ -8,7 +8,7 @@ echo Keep this window OPEN while you use the website (Live Server on port 5500).
 echo API URL: http://localhost:8080
 echo.
 
-mvn -q exec:java
+mvn -q compile exec:java
 
 echo.
 if errorlevel 1 (

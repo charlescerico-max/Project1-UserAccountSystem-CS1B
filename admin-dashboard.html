@@ -259,8 +259,11 @@
         </div>
     </div>
 
+    <div class="welcome-message hidden" id="welcomeMessage" role="status" aria-live="polite"></div>
+
     <script>
         let selectedUserData = null;
+        const API_ORIGIN = window.API_ORIGIN || 'http://localhost:8080';
 
         function setSidebarState(open) {
             document.body.classList.toggle('nav-open', open);
@@ -421,6 +424,41 @@
             });
 
         }
+
+        function showWelcomeMessage(firstName) {
+            const message = document.getElementById('welcomeMessage');
+            if (!message) return;
+            message.textContent = 'Welcome, ' + (firstName || 'Admin');
+            message.classList.remove('hidden');
+            setTimeout(() => {
+                message.classList.add('hidden');
+            }, 2000);
+        }
+
+        async function loadWelcomeMessage() {
+            if (sessionStorage.getItem('show_login_welcome') !== '1') {
+                return;
+            }
+            sessionStorage.removeItem('show_login_welcome');
+
+            const userId = localStorage.getItem('user_id');
+            if (!userId) {
+                return;
+            }
+
+            try {
+                const response = await fetch(API_ORIGIN + '/user/profile?user_id=' + encodeURIComponent(userId));
+                const data = await response.json();
+                if (!response.ok || !data.success || !data.data) {
+                    return;
+                }
+                showWelcomeMessage(data.data.first_name);
+            } catch (error) {
+                console.error('Welcome message fetch failed:', error);
+            }
+        }
+
+        loadWelcomeMessage();
     </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neumorphic Background</title>
+    <title>Login - Flintlock</title>
     <link rel="stylesheet" href="login.css">
 </head>
 <body>
@@ -115,6 +115,7 @@
 
             localStorage.setItem('user_id', String(data.user_id));
             localStorage.setItem('role', role);
+            sessionStorage.setItem('show_login_welcome', '1');
             if (role === 'admin') {
                 window.location.href = '../admin-dashboard.html';
             } else {

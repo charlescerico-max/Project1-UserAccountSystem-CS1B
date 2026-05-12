@@ -61,20 +61,20 @@
             <!-- Right: Profile Details (Read-only) -->
             <div class="profile-details">
                 <!-- Name Row -->
-                <div class="input-label">Name</div>
+                <div class="input-label">NAME</div>
                 <div class="input-row">
                     <input type="text" id="first-name-input" value="First Name" class="readonly-input" readonly>
                     <input type="text" id="last-name-input" value="Last Name" class="readonly-input" readonly>
                 </div>
 
                 <!-- Username Row -->
-                <div class="input-label">Username</div>
+                <div class="input-label">USERNAME</div>
                 <div class="input-group">
                     <input type="text" id="username-input" value="e.g: juandelacruz396239" class="readonly-input full-width" readonly>
                 </div>
 
                 <!-- Email Row -->
-                <div class="input-label">Email Address</div>
+                <div class="input-label">EMAIL ADDRESS</div>
                 <div class="input-group">
                     <input type="email" id="email-input" value="e.g: juandelacruz@gmail.com" class="readonly-input full-width" readonly>
                 </div>
@@ -93,6 +93,8 @@
             </div>
         </div>
     </div>
+
+    <div class="welcome-message hidden" id="welcomeMessage" role="status" aria-live="polite"></div>
 
     <script>
         function setSidebarState(open) {
@@ -149,6 +151,16 @@
             }
         }
 
+        function showWelcomeMessage(firstName) {
+            const message = document.getElementById('welcomeMessage');
+            if (!message) return;
+            message.textContent = 'Welcome, ' + (firstName || 'User');
+            message.classList.remove('hidden');
+            setTimeout(() => {
+                message.classList.add('hidden');
+            }, 2000);
+        }
+
         async function fetchProfileOnce(userId) {
             const url = API_ORIGIN + '/user/profile?user_id=' + encodeURIComponent(userId);
             const response = await fetch(url);
@@ -169,6 +181,10 @@
             document.getElementById('last-name-input').value = profile.last_name || '';
             document.getElementById('username-input').value = profile.username || '';
             document.getElementById('email-input').value = profile.email || '';
+            if (sessionStorage.getItem('show_login_welcome') === '1') {
+                sessionStorage.removeItem('show_login_welcome');
+                showWelcomeMessage(profile.first_name);
+            }
         }
 
         async function loadUserProfile() {

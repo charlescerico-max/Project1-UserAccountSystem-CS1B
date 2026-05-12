@@ -96,6 +96,7 @@ public class Application {
         server.createContext("/user/updateProfile", new UserProfileUpdateHandler());
         server.createContext("/user/profile", new UserProfileHandler());
         server.createContext("/user/changePassword", new ChangePasswordHandler());
+        server.createContext("/user/deleteAccount", new DeleteAccountHandler());
         server.createContext("/signup", new SignupHandler());
         server.setExecutor(null); // creates a default executor
         server.start();
@@ -778,6 +779,144 @@ public class Application {
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, hashedPassword);
                 stmt.setInt(2, userId);
+                return stmt.executeUpdate();
+            }
+        }
+    }
+
+    static class DeleteAccountHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+            if ("OPTIONS".equals(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(200, -1);
+                return;
+            }
+
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonUtf8(exchange, 405, "{\"success\":false, \"message\":\"Method not allowed. Use POST with form body (application/x-www-form-urlencoded).\"}");
+                return;
+            }
+
+            InputStream is = exchange.getRequestBody();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+            StringBuilder body = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                body.append(line);
+            }
+
+            Map<String, String> params = parseForm(body.toString());
+            String userIdRaw = trimValue(params.get("user_id"));
+            String password = params.get("password");
+            if (password != null) {
+                password = password.trim();
+            }
+
+            if (isBlank(userIdRaw) || isBlank(password)) {
+                sendJsonUtf8(exchange, 400, "{\"success\":false, \"message\":\"user_id and password are required\"}");
+                return;
+            }
+
+            int userId;
+            try {
+                userId = Integer.parseInt(userIdRaw);
+            } catch (NumberFormatException e) {
+                sendJsonUtf8(exchange, 400, "{\"success\":false, \"message\":\"user_id must be a number\"}");
+                return;
+            }
+
+            try {
+                String storedHash = getStoredPasswordHash(userId);
+                if (storedHash == null) {
+                    sendJsonUtf8(exchange, 404, "{\"success\":false, \"message\":\"User not found\"}");
+                    return;
+                }
+
+                String submittedHash = toMd5IfNeeded(password);
+                if (!storedHash.equalsIgnoreCase(submittedHash)) {
+                    sendJsonUtf8(exchange, 401, "{\"success\":false, \"message\":\"Password does not match our records.\"}");
+                    return;
+                }
+
+                int deleted = deleteUser(userId);
+                if (deleted == 0) {
+                    sendJsonUtf8(exchange, 404, "{\"success\":false, \"message\":\"User not found\"}");
+                    return;
+                }
+
+                sendJsonUtf8(exchange, 200, "{\"success\":true, \"message\":\"Account deleted successfully.\"}");
+            } catch (SQLException e) {
+                e.printStackTrace();
+                String hint = jdbcHint(e);
+                sendJsonUtf8(exchange, 500,
+                        "{\"success\":false, \"message\":\"" + jsonEscape(hint) + "\"}");
+            }
+        }
+
+        private Map<String, String> parseForm(String data) {
+            Map<String, String> params = new HashMap<>();
+            if (data == null || data.isEmpty()) return params;
+            for (String pair : data.split("&")) {
+                String[] keyValue = pair.split("=", 2);
+                if (keyValue.length == 2) {
+                    try {
+                        params.put(URLDecoder.decode(keyValue[0], StandardCharsets.UTF_8.name()),
+                                URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8.name()));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return params;
+        }
+
+        private String trimValue(String value) {
+            return value == null ? null : value.trim();
+        }
+
+        private boolean isBlank(String value) {
+            return value == null || value.isEmpty();
+        }
+
+        private String jsonEscape(String value) {
+            if (value == null) {
+                return "";
+            }
+            return value.replace("\\", "\\\\").replace("\"", "\\\"");
+        }
+
+        private void sendJsonUtf8(HttpExchange exchange, int statusCode, String json) throws IOException {
+            byte[] bodyBytes = json.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
+            exchange.sendResponseHeaders(statusCode, bodyBytes.length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(bodyBytes);
+            os.close();
+        }
+
+        private String getStoredPasswordHash(int userId) throws SQLException {
+            String sql = "SELECT password FROM users WHERE user_id = ? LIMIT 1";
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (!rs.next()) {
+                        return null;
+                    }
+                    return rs.getString("password");
+                }
+            }
+        }
+
+        private int deleteUser(int userId) throws SQLException {
+            String sql = "DELETE FROM users WHERE user_id = ?";
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
                 return stmt.executeUpdate();
             }
         }
