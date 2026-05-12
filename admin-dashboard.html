@@ -42,8 +42,24 @@
                         <input type="search" placeholder="Search" aria-label="Search users">
                     </label>
                     <div class="filter-chips">
-                        <button type="button" class="filter-chip">Role</button>
-                        <button type="button" class="filter-chip">Date</button>
+                        <div class="role-filter-wrap">
+                            <button type="button" class="filter-chip filter-chip-role" id="roleFilterBtn" aria-expanded="false" aria-haspopup="true" aria-controls="roleFilterPanel" title="Filter the table by account role">Role</button>
+                            <div class="role-filter-panel hidden" id="roleFilterPanel" role="menu" aria-labelledby="roleFilterBtn">
+                                <button type="button" class="role-filter-option" role="menuitem" data-role-filter="user">User</button>
+                                <button type="button" class="role-filter-option" role="menuitem" data-role-filter="admin">Admin</button>
+                                <button type="button" class="role-filter-clear" role="menuitem" id="roleFilterClear" disabled>Both</button>
+                            </div>
+                        </div>
+                        <div class="time-filter-wrap">
+                            <button type="button" class="filter-chip filter-chip-time" id="timeFilterBtn" aria-expanded="false" aria-haspopup="true" aria-controls="timeFilterPanel" title="Filter by join date">All Time</button>
+                            <div class="time-filter-panel hidden" id="timeFilterPanel" role="menu" aria-labelledby="timeFilterBtn">
+                                <button type="button" class="time-filter-option" role="menuitem" data-time-filter="all">All time</button>
+                                <button type="button" class="time-filter-option" role="menuitem" data-time-filter="year">Past year</button>
+                                <button type="button" class="time-filter-option" role="menuitem" data-time-filter="month">Past month</button>
+                                <button type="button" class="time-filter-option" role="menuitem" data-time-filter="week">Past week</button>
+                                <button type="button" class="time-filter-option" role="menuitem" data-time-filter="today">Today</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -68,7 +84,7 @@
                             <td>franceneo@gmail.com</td>
                             <td>francepogi123</td>
                             <td>Admin</td>
-                            <td>April 28, 2028</td>
+                            <td>May 12, 2026</td>
                             <td class="actions">
                                 <button class="action-btn edit" aria-label="Edit user">✎</button>
                                 <button class="action-btn delete" aria-label="Delete user">🗑</button>
@@ -80,7 +96,55 @@
                             <td>franceneo@gmail.com</td>
                             <td>francepogi123</td>
                             <td>User</td>
-                            <td>April 28, 2028</td>
+                            <td>May 11, 2026</td>
+                            <td class="actions">
+                                <button class="action-btn edit" aria-label="Edit user">✎</button>
+                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>Francene O.</td>
+                            <td>franceneo@gmail.com</td>
+                            <td>francepogi123</td>
+                            <td>User</td>
+                            <td>May 8, 2026</td>
+                            <td class="actions">
+                                <button class="action-btn edit" aria-label="Edit user">✎</button>
+                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>Francene O.</td>
+                            <td>franceneo@gmail.com</td>
+                            <td>francepogi123</td>
+                            <td>Admin</td>
+                            <td>April 15, 2026</td>
+                            <td class="actions">
+                                <button class="action-btn edit" aria-label="Edit user">✎</button>
+                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>Francene O.</td>
+                            <td>franceneo@gmail.com</td>
+                            <td>francepogi123</td>
+                            <td>User</td>
+                            <td>June 1, 2025</td>
+                            <td class="actions">
+                                <button class="action-btn edit" aria-label="Edit user">✎</button>
+                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>Francene O.</td>
+                            <td>franceneo@gmail.com</td>
+                            <td>francepogi123</td>
+                            <td>Admin</td>
+                            <td>March 1, 2026</td>
                             <td class="actions">
                                 <button class="action-btn edit" aria-label="Edit user">✎</button>
                                 <button class="action-btn delete" aria-label="Delete user">🗑</button>
@@ -104,7 +168,7 @@
                             <td>franceneo@gmail.com</td>
                             <td>francepogi123</td>
                             <td>Admin</td>
-                            <td>April 28, 2028</td>
+                            <td>May 10, 2026</td>
                             <td class="actions">
                                 <button class="action-btn edit" aria-label="Edit user">✎</button>
                                 <button class="action-btn delete" aria-label="Delete user">🗑</button>
@@ -116,55 +180,7 @@
                             <td>franceneo@gmail.com</td>
                             <td>francepogi123</td>
                             <td>User</td>
-                            <td>April 28, 2028</td>
-                            <td class="actions">
-                                <button class="action-btn edit" aria-label="Edit user">✎</button>
-                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Francene O.</td>
-                            <td>franceneo@gmail.com</td>
-                            <td>francepogi123</td>
-                            <td>Admin</td>
-                            <td>April 28, 2028</td>
-                            <td class="actions">
-                                <button class="action-btn edit" aria-label="Edit user">✎</button>
-                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Francene O.</td>
-                            <td>franceneo@gmail.com</td>
-                            <td>francepogi123</td>
-                            <td>User</td>
-                            <td>April 28, 2028</td>
-                            <td class="actions">
-                                <button class="action-btn edit" aria-label="Edit user">✎</button>
-                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Francene O.</td>
-                            <td>franceneo@gmail.com</td>
-                            <td>francepogi123</td>
-                            <td>Admin</td>
-                            <td>April 28, 2028</td>
-                            <td class="actions">
-                                <button class="action-btn edit" aria-label="Edit user">✎</button>
-                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Francene O.</td>
-                            <td>franceneo@gmail.com</td>
-                            <td>francepogi123</td>
-                            <td>User</td>
-                            <td>April 28, 2028</td>
+                            <td>January 15, 2024</td>
                             <td class="actions">
                                 <button class="action-btn edit" aria-label="Edit user">✎</button>
                                 <button class="action-btn delete" aria-label="Delete user">🗑</button>
@@ -265,10 +281,232 @@
         let selectedUserData = null;
         const API_ORIGIN = window.API_ORIGIN || 'http://localhost:8080';
 
+        const userTableBody = document.querySelector('.user-table tbody');
+        const roleFilterBtn = document.getElementById('roleFilterBtn');
+        const roleFilterPanel = document.getElementById('roleFilterPanel');
+        const roleFilterClear = document.getElementById('roleFilterClear');
+        const timeFilterBtn = document.getElementById('timeFilterBtn');
+        const timeFilterPanel = document.getElementById('timeFilterPanel');
+        const selectAllCheckbox = document.querySelector('thead input[type="checkbox"]');
+
+        const TIME_PRESET_LABEL = {
+            all: 'All time',
+            year: 'Past year',
+            month: 'Past month',
+            week: 'Past week',
+            today: 'Today'
+        };
+
+        function normalizeRoleFromCell(text) {
+            const t = (text || '').trim().toLowerCase();
+            return t === 'admin' ? 'admin' : 'user';
+        }
+
+        function startOfLocalDay(d) {
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        }
+
+        function parseJoinDateMs(cellText) {
+            const d = new Date((cellText || '').trim());
+            if (Number.isNaN(d.getTime())) {
+                return NaN;
+            }
+            return startOfLocalDay(d);
+        }
+
+        function syncRowAttributes() {
+            userTableBody?.querySelectorAll('tr').forEach((tr) => {
+                const cells = tr.querySelectorAll('td');
+                if (cells.length < 6) {
+                    return;
+                }
+                tr.dataset.role = normalizeRoleFromCell(cells[4].textContent);
+                const jm = parseJoinDateMs(cells[5].textContent);
+                tr.dataset.joinMs = Number.isNaN(jm) ? '' : String(jm);
+            });
+        }
+
+        let currentRoleFilter = null;
+        let currentTimePreset = 'all';
+
+        function getVisibleBodyRows() {
+            return Array.from(userTableBody?.querySelectorAll('tr') || []).filter((tr) => !tr.classList.contains('filtered-out'));
+        }
+
+        function getVisibleBodyCheckboxes() {
+            return getVisibleBodyRows()
+                .map((tr) => tr.querySelector('input[type="checkbox"]'))
+                .filter(Boolean);
+        }
+
+        function joinMatchesTimePreset(joinMs, preset) {
+            if (!preset || preset === 'all') {
+                return true;
+            }
+            if (Number.isNaN(joinMs)) {
+                return false;
+            }
+            const now = new Date();
+            const sod = startOfLocalDay(now);
+            const eod = sod + 86400000 - 1;
+            if (preset === 'today') {
+                return joinMs >= sod && joinMs <= eod;
+            }
+            if (preset === 'week') {
+                const start = sod - 6 * 86400000;
+                return joinMs >= start && joinMs <= eod;
+            }
+            if (preset === 'month') {
+                const start = sod - 29 * 86400000;
+                return joinMs >= start && joinMs <= eod;
+            }
+            if (preset === 'year') {
+                const start = sod - 364 * 86400000;
+                return joinMs >= start && joinMs <= eod;
+            }
+            return true;
+        }
+
+        function refreshTableFilters() {
+            userTableBody?.querySelectorAll('tr').forEach((tr) => {
+                const rowRole = tr.dataset.role || 'user';
+                const joinMs = parseFloat(tr.dataset.joinMs, 10);
+                const roleOk = !currentRoleFilter || rowRole === currentRoleFilter;
+                const dateOk = joinMatchesTimePreset(joinMs, currentTimePreset);
+                tr.classList.toggle('filtered-out', !roleOk || !dateOk);
+            });
+
+            roleFilterPanel?.querySelectorAll('.role-filter-option').forEach((btn) => {
+                const r = btn.getAttribute('data-role-filter');
+                btn.classList.toggle('is-selected', currentRoleFilter !== null && r === currentRoleFilter);
+            });
+            if (roleFilterClear) {
+                roleFilterClear.disabled = !currentRoleFilter;
+            }
+            if (roleFilterBtn) {
+                roleFilterBtn.textContent = currentRoleFilter
+                    ? 'Role: ' + (currentRoleFilter === 'admin' ? 'Admin' : 'User')
+                    : 'Role';
+            }
+
+            timeFilterPanel?.querySelectorAll('.time-filter-option').forEach((btn) => {
+                const p = btn.getAttribute('data-time-filter');
+                btn.classList.toggle('is-selected', p === currentTimePreset);
+            });
+            if (timeFilterBtn) {
+                timeFilterBtn.textContent = currentTimePreset === 'all'
+                    ? 'All Time'
+                    : (TIME_PRESET_LABEL[currentTimePreset] || currentTimePreset);
+            }
+
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
+            getVisibleBodyCheckboxes().forEach((cb) => {
+                cb.checked = false;
+            });
+        }
+
+        function applyRoleFilter(role) {
+            currentRoleFilter = role;
+            refreshTableFilters();
+        }
+
+        function applyTimePreset(preset) {
+            currentTimePreset = preset === 'year' || preset === 'month' || preset === 'week' || preset === 'today' || preset === 'all'
+                ? preset
+                : 'all';
+            refreshTableFilters();
+        }
+
+        function setRolePanelOpen(open) {
+            if (!roleFilterPanel || !roleFilterBtn) {
+                return;
+            }
+            roleFilterPanel.classList.toggle('hidden', !open);
+            roleFilterBtn.classList.toggle('is-open', open);
+            roleFilterBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        function closeRolePanel() {
+            setRolePanelOpen(false);
+        }
+
+        function setTimePanelOpen(open) {
+            if (!timeFilterPanel || !timeFilterBtn) {
+                return;
+            }
+            timeFilterPanel.classList.toggle('hidden', !open);
+            timeFilterBtn.classList.toggle('is-open', open);
+            timeFilterBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        function closeTimePanel() {
+            setTimePanelOpen(false);
+        }
+
+        function closeFilterPanels() {
+            closeRolePanel();
+            closeTimePanel();
+        }
+
         function setSidebarState(open) {
             document.body.classList.toggle('nav-open', open);
             localStorage.setItem('sidebarOpen', open ? '1' : '0');
         }
+
+        syncRowAttributes();
+        refreshTableFilters();
+
+        roleFilterBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeTimePanel();
+            const open = roleFilterPanel?.classList.contains('hidden');
+            setRolePanelOpen(!!open);
+        });
+
+        roleFilterPanel?.querySelectorAll('.role-filter-option').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const role = btn.getAttribute('data-role-filter');
+                if (role === 'user' || role === 'admin') {
+                    applyRoleFilter(role);
+                }
+                closeRolePanel();
+            });
+        });
+
+        roleFilterClear?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentRoleFilter) {
+                applyRoleFilter(null);
+            }
+            closeRolePanel();
+        });
+
+        timeFilterBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeRolePanel();
+            const open = timeFilterPanel?.classList.contains('hidden');
+            setTimePanelOpen(!!open);
+        });
+
+        timeFilterPanel?.querySelectorAll('.time-filter-option').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const preset = btn.getAttribute('data-time-filter');
+                if (preset) {
+                    applyTimePreset(preset);
+                }
+                closeTimePanel();
+            });
+        });
+
+        document.addEventListener('click', () => closeFilterPanels());
+
+        roleFilterPanel?.addEventListener('click', (e) => e.stopPropagation());
+        timeFilterPanel?.addEventListener('click', (e) => e.stopPropagation());
 
         if (localStorage.getItem('sidebarOpen') === '1') {
             setSidebarState(true);
@@ -278,24 +516,23 @@
             setSidebarState(!document.body.classList.contains('nav-open'));
         });
 
-        // Select all checkbox functionality
-        const selectAllCheckbox = document.querySelector('thead input[type="checkbox"]');
-        const tableBodyCheckboxes = document.querySelectorAll('tbody input[type="checkbox"]');
-
+        // Select all checkbox — only visible rows (respects role and join-date filters)
         selectAllCheckbox?.addEventListener('change', () => {
-            tableBodyCheckboxes.forEach(checkbox => {
+            getVisibleBodyCheckboxes().forEach((checkbox) => {
                 checkbox.checked = selectAllCheckbox.checked;
             });
         });
 
-        // Update select all checkbox if all body checkboxes are checked
-        tableBodyCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', () => {
-                const allChecked = Array.from(tableBodyCheckboxes).every(cb => cb.checked);
-                const someChecked = Array.from(tableBodyCheckboxes).some(cb => cb.checked);
+        userTableBody?.addEventListener('change', (e) => {
+            const cb = e.target;
+            if (cb.type !== 'checkbox' || cb.closest('thead')) return;
+            const visible = getVisibleBodyCheckboxes();
+            const allChecked = visible.length > 0 && visible.every((c) => c.checked);
+            const someChecked = visible.some((c) => c.checked);
+            if (selectAllCheckbox) {
                 selectAllCheckbox.checked = allChecked;
                 selectAllCheckbox.indeterminate = someChecked && !allChecked;
-            });
+            }
         });
 
         // Edit user functionality
@@ -374,9 +611,10 @@
             document.getElementById('adminPassword').value = '';
         });
 
-        // Close overlays on Escape key
+        // Close overlays and filter menus on Escape
         window.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
+                closeFilterPanels();
                 document.getElementById('editUserOverlay').classList.add('hidden');
                 document.getElementById('deleteConfirmOverlay').classList.add('hidden');
                 document.getElementById('deleteAuthOverlay').classList.add('hidden');
@@ -447,7 +685,7 @@
             }
 
             try {
-                const response = await fetch(API_ORIGIN + '/user/profile?user_id=' + encodeURIComponent(userId));
+                const response = await fetch(API_ORIGIN + '/admin/profile?user_id=' + encodeURIComponent(userId));
                 const data = await response.json();
                 if (!response.ok || !data.success || !data.data) {
                     return;

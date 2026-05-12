@@ -30,6 +30,22 @@ public class Application {
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "";
 
+    /** Regular accounts; `user` is a MySQL reserved word — must be backtick-quoted in SQL. */
+    private static final String TABLE_USER = "`user`";
+    private static final String TABLE_ADMIN = "admin";
+    private static final String COL_USER_ID = "user_id";
+
+    private enum AccountKind {
+        USER(TABLE_USER),
+        ADMIN(TABLE_ADMIN);
+
+        final String fromClause;
+
+        AccountKind(String fromClause) {
+            this.fromClause = fromClause;
+        }
+    }
+
     static {
         // exec-maven-plugin uses an isolated classloader; DriverManager's SPI
         // auto-discovery sometimes misses it. Force-load the driver explicitly.
@@ -86,6 +102,24 @@ public class Application {
         return md5Hash(value);
     }
 
+    /** Login: {@code /admin/login} checks {@code admin}; other login paths check {@code user}. */
+    private static Integer authenticateLogin(AccountKind kind, String username, String passwordHash) throws SQLException {
+        String sql = "SELECT " + COL_USER_ID + " FROM " + kind.fromClause
+                + " WHERE (username = ? OR email = ?) AND password = ? LIMIT 1";
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            stmt.setString(2, username);
+            stmt.setString(3, passwordHash);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(COL_USER_ID);
+                }
+            }
+        }
+        return null;
+    }
+
     public static void main(String[] args) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
         server.createContext("/hello", new HelloHandler());
@@ -93,10 +127,14 @@ public class Application {
         server.createContext("/user/login", new LoginHandler());
         server.createContext("/admin/login", new LoginHandler());
         // "/user/profile" prefix-matches "/user/profile/update"; POST was hitting GET-only branch. Dedicated path has no prefix clash.
-        server.createContext("/user/updateProfile", new UserProfileUpdateHandler());
-        server.createContext("/user/profile", new UserProfileHandler());
-        server.createContext("/user/changePassword", new ChangePasswordHandler());
-        server.createContext("/user/deleteAccount", new DeleteAccountHandler());
+        server.createContext("/user/updateProfile", new UserProfileUpdateHandler(AccountKind.USER));
+        server.createContext("/admin/updateProfile", new UserProfileUpdateHandler(AccountKind.ADMIN));
+        server.createContext("/user/profile", new UserProfileHandler(AccountKind.USER));
+        server.createContext("/admin/profile", new UserProfileHandler(AccountKind.ADMIN));
+        server.createContext("/user/changePassword", new ChangePasswordHandler(AccountKind.USER));
+        server.createContext("/admin/changePassword", new ChangePasswordHandler(AccountKind.ADMIN));
+        server.createContext("/user/deleteAccount", new DeleteAccountHandler(AccountKind.USER));
+        server.createContext("/admin/deleteAccount", new DeleteAccountHandler(AccountKind.ADMIN));
         server.createContext("/signup", new SignupHandler());
         server.setExecutor(null); // creates a default executor
         server.start();
@@ -177,9 +215,10 @@ public class Application {
 
             String response;
             try {
-                // Check against database
+                String path = exchange.getRequestURI().getPath();
+                AccountKind kind = "/admin/login".equals(path) ? AccountKind.ADMIN : AccountKind.USER;
                 String hashedPassword = toMd5IfNeeded(password);
-                Integer userId = authenticateUser(username, hashedPassword);
+                Integer userId = authenticateLogin(kind, username, hashedPassword);
                 if (userId != null) {
                     response = "{\"success\":true, \"user_id\":" + userId + "}";
                     exchange.sendResponseHeaders(200, response.getBytes().length);
@@ -217,28 +256,6 @@ public class Application {
                 }
             }
             return params;
-        }
-
-        private Integer authenticateUser(String username, String password) throws SQLException {
-            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-                System.out.println("Database connection established");
-
-                String sql = "SELECT user_id FROM users WHERE (username = ? OR email = ?) AND password = ?";
-                PreparedStatement stmt = conn.prepareStatement(sql);
-                stmt.setString(1, username);
-                stmt.setString(2, username);
-                stmt.setString(3, password);
-                System.out.println("Executing fallback query with username=" + username + " and password=" + password);
-                ResultSet rs = stmt.executeQuery();
-                if (rs.next()) {
-                    int userId = rs.getInt("user_id");
-                    System.out.println("User authenticated with user_id: " + userId);
-                    return userId;
-                } else {
-                    System.out.println("No user found with user_id query");
-                }
-            }
-            return null;
         }
     }
 
@@ -344,7 +361,14 @@ public class Application {
         }
 
         private boolean isUsernameOrEmailTaken(String username, String email) throws SQLException {
-            String sql = "SELECT 1 FROM users WHERE username = ? OR email = ? LIMIT 1";
+            if (rowExists(AccountKind.USER, username, email)) {
+                return true;
+            }
+            return rowExists(AccountKind.ADMIN, username, email);
+        }
+
+        private boolean rowExists(AccountKind kind, String username, String email) throws SQLException {
+            String sql = "SELECT 1 FROM " + kind.fromClause + " WHERE username = ? OR email = ? LIMIT 1";
             try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, username);
@@ -357,7 +381,7 @@ public class Application {
 
         private int createUser(String firstName, String lastName, String username, String email, String password) throws SQLException {
             String passwordToStore = toMd5IfNeeded(password);
-            String sql = "INSERT INTO users (first_name, last_name, username, email, password, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO " + TABLE_USER + " (first_name, last_name, username, email, password, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?)";
             try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                  PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, firstName);
@@ -380,6 +404,13 @@ public class Application {
     }
 
     static class UserProfileHandler implements HttpHandler {
+
+        private final AccountKind accountKind;
+
+        UserProfileHandler(AccountKind accountKind) {
+            this.accountKind = accountKind;
+        }
+
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -413,7 +444,7 @@ public class Application {
             }
 
             try {
-                String profileJson = getUserProfileJson(userId);
+                String profileJson = getUserProfileJson(accountKind, userId);
                 if (profileJson == null) {
                     sendJsonResponse(exchange, 404, "{\"success\":false, \"message\":\"User not found\"}");
                     return;
@@ -458,8 +489,8 @@ public class Application {
             os.close();
         }
 
-        private String getUserProfileJson(int userId) throws SQLException {
-            String sql = "SELECT first_name, last_name, username, email FROM users WHERE user_id = ?";
+        private String getUserProfileJson(AccountKind kind, int userId) throws SQLException {
+            String sql = "SELECT first_name, last_name, username, email FROM " + kind.fromClause + " WHERE " + COL_USER_ID + " = ?";
             try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
@@ -478,6 +509,13 @@ public class Application {
     }
 
     static class UserProfileUpdateHandler implements HttpHandler {
+
+        private final AccountKind accountKind;
+
+        UserProfileUpdateHandler(AccountKind accountKind) {
+            this.accountKind = accountKind;
+        }
+
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -528,16 +566,16 @@ public class Application {
             }
 
             try {
-                if (!userExists(userId)) {
+                if (!userExists(accountKind, userId)) {
                     sendJsonUtf8(exchange, 404, "{\"success\":false, \"message\":\"User not found\"}");
                     return;
                 }
-                if (isUsernameOrEmailTakenByOther(username, email, userId)) {
+                if (isUsernameOrEmailTakenByOther(accountKind, username, email, userId)) {
                     sendJsonUtf8(exchange, 409, "{\"success\":false, \"message\":\"Username or email is already in use\"}");
                     return;
                 }
 
-                int rows = updateProfile(userId, firstName, lastName, username, email);
+                int rows = updateProfile(accountKind, userId, firstName, lastName, username, email);
                 if (rows == 0) {
                     sendJsonUtf8(exchange, 404, "{\"success\":false, \"message\":\"User not found\"}");
                     return;
@@ -583,8 +621,8 @@ public class Application {
             os.close();
         }
 
-        private boolean userExists(int userId) throws SQLException {
-            String sql = "SELECT 1 FROM users WHERE user_id = ? LIMIT 1";
+        private boolean userExists(AccountKind kind, int userId) throws SQLException {
+            String sql = "SELECT 1 FROM " + kind.fromClause + " WHERE " + COL_USER_ID + " = ? LIMIT 1";
             try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
@@ -594,8 +632,8 @@ public class Application {
             }
         }
 
-        private boolean isUsernameOrEmailTakenByOther(String username, String email, int userId) throws SQLException {
-            String sql = "SELECT 1 FROM users WHERE (username = ? OR email = ?) AND user_id <> ? LIMIT 1";
+        private boolean isUsernameOrEmailTakenByOther(AccountKind kind, String username, String email, int userId) throws SQLException {
+            String sql = "SELECT 1 FROM " + kind.fromClause + " WHERE (username = ? OR email = ?) AND " + COL_USER_ID + " <> ? LIMIT 1";
             try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, username);
@@ -607,8 +645,8 @@ public class Application {
             }
         }
 
-        private int updateProfile(int userId, String firstName, String lastName, String username, String email) throws SQLException {
-            String sql = "UPDATE users SET first_name = ?, last_name = ?, username = ?, email = ?, updated_by = ? WHERE user_id = ?";
+        private int updateProfile(AccountKind kind, int userId, String firstName, String lastName, String username, String email) throws SQLException {
+            String sql = "UPDATE " + kind.fromClause + " SET first_name = ?, last_name = ?, username = ?, email = ?, updated_by = ? WHERE " + COL_USER_ID + " = ?";
             try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, firstName);
@@ -627,6 +665,12 @@ public class Application {
         private static final Pattern HAS_UPPER = Pattern.compile("[A-Z]");
         private static final Pattern HAS_DIGIT = Pattern.compile("[0-9]");
         private static final Pattern HAS_SPECIAL = Pattern.compile("[@#!%_]");
+
+        private final AccountKind accountKind;
+
+        ChangePasswordHandler(AccountKind accountKind) {
+            this.accountKind = accountKind;
+        }
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -684,7 +728,7 @@ public class Application {
 
             try {
                 String currentHash = toMd5IfNeeded(currentPassword);
-                String storedHash = getStoredPasswordHash(userId);
+                String storedHash = getStoredPasswordHash(accountKind, userId);
                 if (storedHash == null) {
                     sendJsonUtf8(exchange, 404, "{\"success\":false, \"message\":\"User not found\"}");
                     return;
@@ -695,7 +739,7 @@ public class Application {
                 }
 
                 String newHash = md5Hash(newPassword);
-                int updated = updatePassword(userId, newHash);
+                int updated = updatePassword(accountKind, userId, newHash);
                 if (updated == 0) {
                     sendJsonUtf8(exchange, 404, "{\"success\":false, \"message\":\"User not found\"}");
                     return;
@@ -759,8 +803,8 @@ public class Application {
             os.close();
         }
 
-        private String getStoredPasswordHash(int userId) throws SQLException {
-            String sql = "SELECT password FROM users WHERE user_id = ? LIMIT 1";
+        private String getStoredPasswordHash(AccountKind kind, int userId) throws SQLException {
+            String sql = "SELECT password FROM " + kind.fromClause + " WHERE " + COL_USER_ID + " = ? LIMIT 1";
             try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
@@ -773,8 +817,8 @@ public class Application {
             }
         }
 
-        private int updatePassword(int userId, String hashedPassword) throws SQLException {
-            String sql = "UPDATE users SET password = ? WHERE user_id = ?";
+        private int updatePassword(AccountKind kind, int userId, String hashedPassword) throws SQLException {
+            String sql = "UPDATE " + kind.fromClause + " SET password = ? WHERE " + COL_USER_ID + " = ?";
             try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, hashedPassword);
@@ -785,6 +829,13 @@ public class Application {
     }
 
     static class DeleteAccountHandler implements HttpHandler {
+
+        private final AccountKind accountKind;
+
+        DeleteAccountHandler(AccountKind accountKind) {
+            this.accountKind = accountKind;
+        }
+
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -830,7 +881,7 @@ public class Application {
             }
 
             try {
-                String storedHash = getStoredPasswordHash(userId);
+                String storedHash = getStoredPasswordHash(accountKind, userId);
                 if (storedHash == null) {
                     sendJsonUtf8(exchange, 404, "{\"success\":false, \"message\":\"User not found\"}");
                     return;
@@ -842,7 +893,7 @@ public class Application {
                     return;
                 }
 
-                int deleted = deleteUser(userId);
+                int deleted = deleteUser(accountKind, userId);
                 if (deleted == 0) {
                     sendJsonUtf8(exchange, 404, "{\"success\":false, \"message\":\"User not found\"}");
                     return;
@@ -898,8 +949,8 @@ public class Application {
             os.close();
         }
 
-        private String getStoredPasswordHash(int userId) throws SQLException {
-            String sql = "SELECT password FROM users WHERE user_id = ? LIMIT 1";
+        private String getStoredPasswordHash(AccountKind kind, int userId) throws SQLException {
+            String sql = "SELECT password FROM " + kind.fromClause + " WHERE " + COL_USER_ID + " = ? LIMIT 1";
             try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
@@ -912,8 +963,8 @@ public class Application {
             }
         }
 
-        private int deleteUser(int userId) throws SQLException {
-            String sql = "DELETE FROM users WHERE user_id = ?";
+        private int deleteUser(AccountKind kind, int userId) throws SQLException {
+            String sql = "DELETE FROM " + kind.fromClause + " WHERE " + COL_USER_ID + " = ?";
             try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);

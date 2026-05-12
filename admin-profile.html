@@ -308,7 +308,7 @@
             }
 
             try {
-                const response = await fetch(API_ORIGIN + '/user/profile?user_id=' + encodeURIComponent(userId));
+                const response = await fetch(API_ORIGIN + '/admin/profile?user_id=' + encodeURIComponent(userId));
                 const data = await response.json();
                 if (!response.ok || !data.success || !data.data) {
                     return;
@@ -356,7 +356,7 @@
             btn.disabled = true;
 
             try {
-                const response = await fetch(API_ORIGIN + '/user/updateProfile', {
+                const response = await fetch(API_ORIGIN + '/admin/updateProfile', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: formData
