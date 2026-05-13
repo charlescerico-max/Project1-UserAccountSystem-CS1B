@@ -117,14 +117,6 @@
                     <label for="editEmail">Email Address</label>
                     <input type="email" id="editEmail" placeholder="Enter email address">
                 </div>
-                <div class="auth-group">
-                    <label for="editUsername">Username</label>
-                    <input type="text" id="editUsername" placeholder="Enter username">
-                </div>
-                <div class="auth-group">
-                    <label for="editNewPassword">New password (optional)</label>
-                    <input type="password" id="editNewPassword" placeholder="Leave blank to keep current password" autocomplete="new-password">
-                </div>
             </div>
             <div class="confirm-actions">
                 <button id="cancelEditBtn" type="button" class="btn-cancel">Cancel</button>
@@ -543,8 +535,6 @@
                 document.getElementById('editFirstName').value = u.first_name || '';
                 document.getElementById('editLastName').value = u.last_name || '';
                 document.getElementById('editEmail').value = u.email || '';
-                document.getElementById('editUsername').value = u.username || '';
-                document.getElementById('editNewPassword').value = '';
                 document.getElementById('editUserOverlay').classList.remove('hidden');
             }
             if (delBtn) {
@@ -565,20 +555,15 @@
             const patch = {
                 first_name: document.getElementById('editFirstName').value.trim(),
                 last_name: document.getElementById('editLastName').value.trim(),
-                email: document.getElementById('editEmail').value.trim(),
-                username: document.getElementById('editUsername').value.trim()
+                email: document.getElementById('editEmail').value.trim()
             };
-            const np = document.getElementById('editNewPassword').value;
-            if (np) {
-                patch.password = np;
-            }
             if (selectedAccountType === 'admin') {
                 patch.admin_id = selectedAccountId;
             } else {
                 patch.user_id = selectedAccountId;
             }
-            if (!patch.first_name || !patch.last_name || !patch.email || !patch.username) {
-                showToast('First name, last name, email, and username are required', true);
+            if (!patch.first_name || !patch.last_name || !patch.email) {
+                showToast('First name, last name, and email are required', true);
                 return;
             }
             const btn = document.getElementById('saveEditBtn');
