@@ -23,7 +23,7 @@
         <div class="nav-left">
             <div class="menu-icon">☰</div>
             <!-- Using the white transparent logo -->
-            <img src="../assets/logo-name-white.png" alt="Flintlock Logo" class="nav-logo-img">
+            <img src="assets/logo-name-white.png" alt="Flintlock Logo" class="nav-logo-img">
         </div>
     </nav>
 
@@ -69,7 +69,9 @@
         </section>
     </main>
     <script>
-        const API_ORIGIN = window.API_ORIGIN || 'http://localhost:8080';
+        const ME_API = new URL('api/me.php', window.location.href).href;
+        const CHANGE_PASSWORD_API = new URL('api/change-password.php', window.location.href).href;
+        const LOGOUT_API = new URL('api/logout.php', window.location.href).href;
 
         const securityForm = document.querySelector('.security-form');
         const currentInput = document.getElementById('current-password');
@@ -84,63 +86,75 @@
         }
 
         function meetsPasswordPolicy(password) {
-            if (!password || password.length < 8) return false;
-            if (!/[A-Z]/.test(password)) return false;
-            if (!/[0-9]/.test(password)) return false;
-            if (!/[@#!%_]/.test(password)) return false;
+            if (!password || password.length < 8) {
+                return false;
+            }
+            if (!/[A-Z]/.test(password)) {
+                return false;
+            }
+            if (!/[0-9]/.test(password)) {
+                return false;
+            }
+            if (!/[@#!%_]/.test(password)) {
+                return false;
+            }
             return true;
         }
 
         function togglePasswordVisibility(targetId) {
             const input = document.getElementById(targetId);
-            if (!input) return;
+            if (!input) {
+                return;
+            }
             input.type = input.type === 'password' ? 'text' : 'password';
         }
 
-        document.querySelectorAll('.icon-button[data-toggle]').forEach(button => {
+        document.querySelectorAll('.icon-button[data-toggle]').forEach((button) => {
             button.addEventListener('click', () => {
                 const target = button.dataset.toggle;
                 togglePasswordVisibility(target);
             });
         });
 
-        async function loadHeadingFromProfile() {
-            const userId = localStorage.getItem('user_id');
-            const tag = document.getElementById('security-user-tag');
-            if (!userId) {
-                alert('No login session found. Please log in again.');
-                window.location.href = 'login/index.html';
-                return;
-            }
+        async function readJson(res) {
+            const text = await res.text();
             try {
-                const response = await fetch(API_ORIGIN + '/user/profile?user_id=' + encodeURIComponent(userId));
-                const raw = await response.text();
-                const data = raw ? JSON.parse(raw) : {};
-                if (!response.ok || !data.success || !data.data) {
-                    tag.textContent = 'Account • Flintlock';
-                    return;
-                }
-                const d = data.data;
-                const full = (d.first_name + ' ' + d.last_name).trim() || 'Account';
-                tag.textContent = full + ' • Flintlock';
-            } catch (e) {
-                document.getElementById('security-user-tag').textContent = 'Account • Flintlock';
+                return text ? JSON.parse(text) : {};
+            } catch {
+                return { _raw: text };
             }
         }
 
-        securityForm.addEventListener('submit', async event => {
+        async function loadHeadingFromProfile() {
+            const tag = document.getElementById('security-user-tag');
+            try {
+                const response = await fetch(ME_API, { credentials: 'same-origin' });
+                const data = await readJson(response);
+
+                if (response.status === 401) {
+                    window.location.href = 'login/index.html';
+                    return;
+                }
+
+                if (!response.ok || !data.user) {
+                    tag.textContent = 'Account • Flintlock';
+                    return;
+                }
+
+                const d = data.user;
+                const full = ((d.first_name || '') + ' ' + (d.last_name || '')).trim() || 'Account';
+                tag.textContent = full + ' • Flintlock';
+            } catch (e) {
+                tag.textContent = 'Account • Flintlock';
+            }
+        }
+
+        securityForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            const userId = localStorage.getItem('user_id');
-            if (!userId) {
-                showMessage('No login session found. Please log in again.');
-                window.location.href = 'login/index.html';
-                return;
-            }
-
-            const currentValue = currentInput.value.trim();
-            const newValue = newInput.value.trim();
-            const confirmValue = confirmInput.value.trim();
+            const currentValue = currentInput.value;
+            const newValue = newInput.value;
+            const confirmValue = confirmInput.value;
 
             if (!currentValue) {
                 showMessage('Please enter your current password.');
@@ -162,30 +176,23 @@
                 return;
             }
 
-            const formData =
-                'user_id=' + encodeURIComponent(userId) +
-                '&current_password=' + encodeURIComponent(currentValue) +
-                '&new_password=' + encodeURIComponent(newValue);
-
             submitBtn.disabled = true;
             showMessage('');
 
             try {
-                const response = await fetch(API_ORIGIN + '/user/changePassword', {
+                const response = await fetch(CHANGE_PASSWORD_API, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        current_password: currentValue,
+                        new_password: newValue,
+                    }),
                 });
-                const rawText = await response.text();
-                let data;
-                try {
-                    data = rawText ? JSON.parse(rawText) : {};
-                } catch (e) {
-                    throw new Error('Invalid server response');
-                }
+                const data = await readJson(response);
 
                 if (!response.ok || !data.success) {
-                    showMessage(data.message || ('Could not update password (HTTP ' + response.status + ').'));
+                    showMessage(data.message || data.error || ('Could not update password (HTTP ' + response.status + ').'));
                     return;
                 }
 
@@ -195,11 +202,7 @@
                 confirmInput.value = '';
             } catch (err) {
                 console.error(err);
-                const detail = err && err.message ? err.message : '';
-                showMessage(
-                    'Cannot connect to ' + API_ORIGIN + '. Double‑click run-api.bat in the project folder, wait until you see "Server started on port 8080", then try again.' +
-                    (detail ? ' (' + detail + ')' : '')
-                );
+                showMessage('Unable to change password. Check that Apache and PHP are running.');
             } finally {
                 submitBtn.disabled = false;
             }
@@ -250,9 +253,16 @@
                 logoutModal.classList.remove('show');
             });
 
-            logoutModal.querySelector('#confirmLogout')?.addEventListener('click', () => {
+            logoutModal.querySelector('#confirmLogout')?.addEventListener('click', async () => {
+                try {
+                    await fetch(LOGOUT_API, { method: 'GET', credentials: 'same-origin' });
+                } catch (e) {
+                    console.warn(e);
+                }
                 localStorage.removeItem('user_id');
                 localStorage.removeItem('role');
+                localStorage.removeItem('account_type');
+                logoutModal.classList.remove('show');
                 window.location.href = 'login/index.html';
             });
         }

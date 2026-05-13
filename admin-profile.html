@@ -24,7 +24,7 @@
         <div class="nav-left">
             <div class="menu-icon">☰</div>
             <!-- Using the white transparent logo -->
-            <img src="../assets/logo-name-white.png" alt="Flintlock Logo" class="nav-logo-img">
+            <img src="assets/logo-name-white.png" alt="Flintlock Logo" class="nav-logo-img">
         </div>
     </nav>
 
@@ -144,6 +144,13 @@
     </div>
 
     <script>
+        const ME_API = new URL('api/me.php', window.location.href).href;
+        const ADMINS_API = new URL('api/admins.php', window.location.href).href;
+        const LOGOUT_API = new URL('api/logout.php', window.location.href).href;
+        const DELETE_ME_API = new URL('api/delete-me.php', window.location.href).href;
+
+        let sessionNumericId = null;
+
         function setSidebarState(open) {
             document.body.classList.toggle('nav-open', open);
             localStorage.setItem('sidebarOpen', open ? '1' : '0');
@@ -158,9 +165,13 @@
         });
 
         function enableField(id) {
-            if (id === 'username') return;
+            if (id === 'username') {
+                return;
+            }
             const field = document.getElementById(id);
-            if (!field) return;
+            if (!field) {
+                return;
+            }
             field.removeAttribute('readonly');
             field.classList.add('editable');
             field.focus();
@@ -169,7 +180,9 @@
         function lockProfileFields() {
             ['first-name', 'last-name', 'email'].forEach(function (id) {
                 const field = document.getElementById(id);
-                if (!field) return;
+                if (!field) {
+                    return;
+                }
                 field.setAttribute('readonly', 'readonly');
                 field.classList.remove('editable');
             });
@@ -185,7 +198,9 @@
 
         function showProfileToast(messageText) {
             const toast = document.getElementById('profileToast');
-            if (!toast) return;
+            if (!toast) {
+                return;
+            }
             toast.textContent = messageText;
             toast.classList.remove('hidden');
             setTimeout(() => {
@@ -193,15 +208,47 @@
             }, 2000);
         }
 
-        document.querySelectorAll('.input-icon').forEach(button => {
+        async function readJson(res) {
+            const text = await res.text();
+            try {
+                return text ? JSON.parse(text) : {};
+            } catch {
+                return { _raw: text };
+            }
+        }
+
+        function applyAdminProfileFromMe(data) {
+            if (data.account_type !== 'admin') {
+                window.location.href = 'profile.html';
+                return;
+            }
+            const profile = data.user;
+            if (!profile) {
+                return;
+            }
+            sessionNumericId = Number(profile.admin_id);
+            if (!Number.isFinite(sessionNumericId) || sessionNumericId < 1) {
+                throw new Error('Invalid admin id in session data');
+            }
+            const fullName = ((profile.first_name || '') + ' ' + (profile.last_name || '')).trim();
+            document.getElementById('display-name').textContent = fullName || 'Admin User';
+            document.getElementById('display-username').textContent = '@' + (profile.username || 'username');
+            document.getElementById('first-name').value = profile.first_name || '';
+            document.getElementById('last-name').value = profile.last_name || '';
+            document.getElementById('username').value = profile.username || '';
+            document.getElementById('email').value = profile.email || '';
+        }
+
+        document.querySelectorAll('.input-icon').forEach((button) => {
             button.addEventListener('click', () => {
                 const target = button.dataset.target;
-                if (!target) return;
+                if (!target) {
+                    return;
+                }
                 enableField(target);
             });
         });
 
-        // Delete Account Functionality
         const deleteAccountBtn = document.getElementById('deleteAccountBtn');
         const confirmOverlay = document.getElementById('confirmOverlay');
         const authOverlay = document.getElementById('authOverlay');
@@ -232,9 +279,9 @@
             confirmPassword.value = '';
         });
 
-        confirmDeleteBtn.addEventListener('click', () => {
-            const currentValue = currentPassword.value.trim();
-            const confirmValue = confirmPassword.value.trim();
+        confirmDeleteBtn.addEventListener('click', async () => {
+            const currentValue = currentPassword.value;
+            const confirmValue = confirmPassword.value;
 
             if (!currentValue || !confirmValue) {
                 alert('Please fill in both password fields.');
@@ -247,7 +294,35 @@
                 return;
             }
 
-            window.location.href = 'login/index.html';
+            confirmDeleteBtn.disabled = true;
+            confirmDeleteBtn.textContent = 'Deleting...';
+
+            try {
+                const response = await fetch(DELETE_ME_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ password: currentValue }),
+                });
+                const data = await readJson(response);
+
+                if (!response.ok || !data.success) {
+                    alert(data.error || data.message || 'Could not delete account.');
+                    return;
+                }
+
+                localStorage.removeItem('user_id');
+                localStorage.removeItem('role');
+                localStorage.removeItem('account_type');
+                alert(data.message || 'Account deleted successfully.');
+                window.location.href = 'login/index.html';
+            } catch (err) {
+                console.error(err);
+                alert('Unable to delete account. Check that Apache and PHP are running.');
+            } finally {
+                confirmDeleteBtn.disabled = false;
+                confirmDeleteBtn.textContent = 'Delete account';
+            }
         });
 
         window.addEventListener('keydown', (event) => {
@@ -257,81 +332,64 @@
             }
         });
 
-        // Logout functionality
-
         const logoutBtn = document.getElementById('logoutBtn');
-
-        if (logoutBtn) {
-
-            logoutBtn.addEventListener('click', () => {
-
-                document.getElementById('logoutModal').classList.add('show');
-
-            });
-
-        }
-
         const logoutModal = document.getElementById('logoutModal');
 
-        if (logoutModal) {
+        if (logoutBtn && logoutModal) {
+            logoutBtn.addEventListener('click', () => {
+                logoutModal.classList.add('show');
+            });
 
             logoutModal.addEventListener('click', (event) => {
-
                 if (event.target === logoutModal) {
-
                     logoutModal.classList.remove('show');
-
                 }
-
             });
 
             document.getElementById('cancelLogout')?.addEventListener('click', () => {
-
                 logoutModal.classList.remove('show');
-
             });
 
-            document.getElementById('confirmLogout')?.addEventListener('click', () => {
-
+            document.getElementById('confirmLogout')?.addEventListener('click', async () => {
+                try {
+                    await fetch(LOGOUT_API, { method: 'GET', credentials: 'same-origin' });
+                } catch (e) {
+                    console.warn(e);
+                }
+                localStorage.removeItem('user_id');
+                localStorage.removeItem('role');
+                localStorage.removeItem('account_type');
+                logoutModal.classList.remove('show');
                 window.location.href = 'login/index.html';
-
             });
-
         }
 
-        const API_ORIGIN = window.API_ORIGIN || 'http://localhost:8080';
-
         async function loadAdminProfile() {
-            const userId = localStorage.getItem('user_id');
-            if (!userId) {
-                return;
-            }
-
             try {
-                const response = await fetch(API_ORIGIN + '/admin/profile?user_id=' + encodeURIComponent(userId));
-                const data = await response.json();
-                if (!response.ok || !data.success || !data.data) {
+                const response = await fetch(ME_API, { credentials: 'same-origin' });
+                const data = await readJson(response);
+
+                if (response.status === 401) {
+                    window.location.href = 'login/index.html';
                     return;
                 }
 
-                const profile = data.data;
-                const fullName = ((profile.first_name || '') + ' ' + (profile.last_name || '')).trim();
-                document.getElementById('display-name').textContent = fullName || 'Admin User';
-                document.getElementById('display-username').textContent = '@' + (profile.username || 'username');
-                document.getElementById('first-name').value = profile.first_name || '';
-                document.getElementById('last-name').value = profile.last_name || '';
-                document.getElementById('username').value = profile.username || '';
-                document.getElementById('email').value = profile.email || '';
+                if (!response.ok || !data.user) {
+                    throw new Error(data.error || ('HTTP ' + response.status));
+                }
+
+                applyAdminProfileFromMe(data);
             } catch (error) {
                 console.error('Admin profile fetch failed:', error);
+                alert('Unable to load admin profile.\n\n' + (error && error.message ? error.message : String(error)));
             }
         }
 
+        loadAdminProfile();
+
         document.getElementById('saveProfileBtn')?.addEventListener('click', async function () {
-            const userId = localStorage.getItem('user_id');
-            if (!userId) {
-                alert('No login session found. Please log in again.');
-                window.location.href = 'login/index.html';
+            if (!sessionNumericId) {
+                alert('Session not ready. Please refresh the page.');
                 return;
             }
 
@@ -345,32 +403,28 @@
                 return;
             }
 
-            const formData =
-                'user_id=' + encodeURIComponent(userId) +
-                '&first_name=' + encodeURIComponent(firstName) +
-                '&last_name=' + encodeURIComponent(lastName) +
-                '&username=' + encodeURIComponent(username) +
-                '&email=' + encodeURIComponent(email);
+            const patch = {
+                admin_id: sessionNumericId,
+                first_name: firstName,
+                last_name: lastName,
+                username: username,
+                email: email,
+            };
 
             const btn = document.getElementById('saveProfileBtn');
             btn.disabled = true;
 
             try {
-                const response = await fetch(API_ORIGIN + '/admin/updateProfile', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData
+                const response = await fetch(ADMINS_API, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(patch),
                 });
-                const rawText = await response.text();
-                let data;
-                try {
-                    data = rawText ? JSON.parse(rawText) : {};
-                } catch (e) {
-                    throw new Error('Invalid server response');
-                }
+                const data = await readJson(response);
 
-                if (!response.ok || !data.success) {
-                    alert(data.message || 'Could not save profile.');
+                if (!response.ok) {
+                    alert(data.error || 'Could not save profile.');
                     return;
                 }
 
@@ -379,13 +433,11 @@
                 showProfileToast('Successfully edited profile!');
             } catch (err) {
                 console.error(err);
-                alert('Unable to save profile. Check that the server is running.');
+                alert('Unable to save profile. Check that Apache and PHP are running.');
             } finally {
                 btn.disabled = false;
             }
         });
-
-        loadAdminProfile();
     </script>
 
 </body>

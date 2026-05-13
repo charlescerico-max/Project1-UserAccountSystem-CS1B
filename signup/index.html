@@ -85,41 +85,59 @@
     </div>
 
 <script>
-    document.getElementById('signupForm').addEventListener('submit', async function(event) {
+    const USERS_API = new URL('../api/users.php', window.location.href).href;
+
+    document.getElementById('signupForm').addEventListener('submit', async function (event) {
         event.preventDefault();
 
         const firstName = document.getElementById('firstName').value.trim();
         const lastName = document.getElementById('lastName').value.trim();
         const username = document.getElementById('username').value.trim();
         const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value.trim();
-        const confirmPassword = document.getElementById('confirmPassword').value.trim();
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
 
         if (password !== confirmPassword) {
             alert('Passwords do not match.');
             return;
         }
 
-        const formData =
-            'firstName=' + encodeURIComponent(firstName) +
-            '&lastName=' + encodeURIComponent(lastName) +
-            '&username=' + encodeURIComponent(username) +
-            '&email=' + encodeURIComponent(email) +
-            '&password=' + encodeURIComponent(password) +
-            '&confirmPassword=' + encodeURIComponent(confirmPassword);
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+        }
 
         try {
-            const response = await fetch('http://localhost:8080/signup', {
+            const response = await fetch(USERS_API, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/json'
                 },
-                body: formData
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    first_name: firstName,
+                    last_name: lastName,
+                    username: username,
+                    email: email,
+                    password: password
+                })
             });
 
-            const data = await response.json();
-            if (!response.ok || !data.success) {
-                alert(data.message || 'Unable to create account.');
+            const text = await response.text();
+            let data = {};
+            try {
+                data = text ? JSON.parse(text) : {};
+            } catch {
+                data = { error: text || 'Unexpected response from server.' };
+            }
+
+            if (!response.ok) {
+                alert(data.error || ('Unable to create account (HTTP ' + response.status + ').'));
+                return;
+            }
+
+            if (!data.user) {
+                alert('Unexpected response from server.');
                 return;
             }
 
@@ -127,7 +145,11 @@
             window.location.href = '../login/index.html';
         } catch (error) {
             console.error('Signup error:', error);
-            alert('Unable to sign up. Please check if the server is running.');
+            alert('Unable to sign up. Check that Apache and MySQL are running.');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+            }
         }
     });
 </script>

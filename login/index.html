@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Flintlock</title>
-    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="login.css?v=3">
 </head>
 <body>
 
@@ -36,9 +36,10 @@
             </div>
             
             <!-- Password Input -->
-            <div class="input-group">
+            <div class="input-group has-toggle">
                 <span class="icon">🔒</span>
-                <input type="password" id="password" name="password" placeholder="Password" required>
+                <input type="password" id="password" name="password" placeholder="Password" required autocomplete="current-password">
+                <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password" aria-pressed="false">👁</button>
             </div>
             
             <!-- Options Row -->
@@ -79,42 +80,71 @@
 </div>
 
 <script>
-    // Handle form submission
-    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+    const LOGIN_API = new URL('../api/login.php', window.location.href).href;
+
+    (function initPasswordToggle() {
+        const passwordInput = document.getElementById('password');
+        const toggleBtn = document.getElementById('passwordToggle');
+        if (!passwordInput || !toggleBtn) {
+            return;
+        }
+        toggleBtn.addEventListener('click', function () {
+            const isHidden = passwordInput.type === 'password';
+            passwordInput.type = isHidden ? 'text' : 'password';
+            toggleBtn.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
+            toggleBtn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+        });
+    })();
+
+    document.getElementById('loginForm').addEventListener('submit', async function (event) {
         event.preventDefault();
 
         const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value.trim();
+        const password = document.getElementById('password').value;
         const role = document.getElementById('roleSelect').value;
-        const loginEndpoint = role === 'admin'
-            ? 'http://localhost:8080/admin/login'
-            : 'http://localhost:8080/user/login';
 
-        const formData = 'username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password);
+        if (!role) {
+            alert('Please select your role.');
+            return;
+        }
+
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+        }
 
         try {
-            const response = await fetch(loginEndpoint, {
+            const response = await fetch(LOGIN_API, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/json'
                 },
-                body: formData
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    login: username,
+                    password: password,
+                    role: role
+                })
             });
 
-            let data;
+            const text = await response.text();
+            let data = {};
             try {
-                data = await response.json();
-            } catch (error) {
-                throw new Error('Invalid server response');
+                data = text ? JSON.parse(text) : {};
+            } catch {
+                data = { error: text || 'Invalid server response' };
             }
 
             if (!response.ok || !data.success) {
-                alert(data.message || 'Invalid credentials');
+                alert(data.error || data.message || 'Invalid credentials');
                 return;
             }
 
             localStorage.setItem('user_id', String(data.user_id));
             localStorage.setItem('role', role);
+            if (data.account_type) {
+                localStorage.setItem('account_type', data.account_type);
+            }
             sessionStorage.setItem('show_login_welcome', '1');
             if (role === 'admin') {
                 window.location.href = '../admin-dashboard.html';
@@ -123,7 +153,11 @@
             }
         } catch (error) {
             console.error('Login error:', error);
-            alert('Unable to login. Please check if the server is running.');
+            alert('Unable to login. Check that Apache, PHP, and MySQL are running.');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+            }
         }
     });
 </script>
