@@ -133,8 +133,16 @@
     </div>
 
     <script>
+        const ME_API = new URL('api/me.php', window.location.href).href;
+        const USERS_API = new URL('api/users.php', window.location.href).href;
+        const ADMINS_API = new URL('api/admins.php', window.location.href).href;
+        const LOGOUT_API = new URL('api/logout.php', window.location.href).href;
+        const DELETE_ME_API = new URL('api/delete-me.php', window.location.href).href;
 
-         function setSidebarState(open) {
+        let sessionAccountType = null;
+        let sessionNumericId = null;
+
+        function setSidebarState(open) {
             document.body.classList.toggle('nav-open', open);
             localStorage.setItem('sidebarOpen', open ? '1' : '0');
         }
@@ -148,9 +156,13 @@
         });
 
         function enableField(id) {
-            if (id === 'username') return;
+            if (id === 'username') {
+                return;
+            }
             const field = document.getElementById(id);
-            if (!field) return;
+            if (!field) {
+                return;
+            }
             field.removeAttribute('readonly');
             field.classList.add('editable');
             field.focus();
@@ -159,7 +171,9 @@
         function lockProfileFields() {
             ['first-name', 'last-name', 'email'].forEach(function (id) {
                 const field = document.getElementById(id);
-                if (!field) return;
+                if (!field) {
+                    return;
+                }
                 field.setAttribute('readonly', 'readonly');
                 field.classList.remove('editable');
             });
@@ -175,7 +189,9 @@
 
         function showProfileToast(messageText) {
             const toast = document.getElementById('profileToast');
-            if (!toast) return;
+            if (!toast) {
+                return;
+            }
             toast.textContent = messageText;
             toast.classList.remove('hidden');
             setTimeout(() => {
@@ -183,10 +199,42 @@
             }, 2000);
         }
 
-        document.querySelectorAll('.input-icon').forEach(button => {
+        function applyProfileFromMe(data) {
+            sessionAccountType = data.account_type || 'user';
+            const profile = data.user;
+            if (!profile) {
+                return;
+            }
+            sessionNumericId = sessionAccountType === 'admin'
+                ? Number(profile.admin_id)
+                : Number(profile.user_id);
+            if (!Number.isFinite(sessionNumericId) || sessionNumericId < 1) {
+                throw new Error('Invalid account id in session data');
+            }
+            const fullName = ((profile.first_name || '') + ' ' + (profile.last_name || '')).trim();
+            document.getElementById('display-name').textContent = fullName || 'Unknown User';
+            document.getElementById('display-username').textContent = '@' + (profile.username || 'username');
+            document.getElementById('first-name').value = profile.first_name || '';
+            document.getElementById('last-name').value = profile.last_name || '';
+            document.getElementById('username').value = profile.username || '';
+            document.getElementById('email').value = profile.email || '';
+        }
+
+        async function readJson(res) {
+            const text = await res.text();
+            try {
+                return text ? JSON.parse(text) : {};
+            } catch {
+                return { _raw: text };
+            }
+        }
+
+        document.querySelectorAll('.input-icon').forEach((button) => {
             button.addEventListener('click', () => {
                 const target = button.dataset.target;
-                if (!target) return;
+                if (!target) {
+                    return;
+                }
                 enableField(target);
             });
         });
@@ -222,8 +270,8 @@
         });
 
         confirmDeleteBtn.addEventListener('click', async () => {
-            const currentValue = currentPassword.value.trim();
-            const confirmValue = confirmPassword.value.trim();
+            const currentValue = currentPassword.value;
+            const confirmValue = confirmPassword.value;
 
             if (!currentValue || !confirmValue) {
                 alert('Please fill in both password fields.');
@@ -236,44 +284,31 @@
                 return;
             }
 
-            const userId = localStorage.getItem('user_id');
-            if (!userId) {
-                alert('No login session found. Please log in again.');
-                window.location.href = 'login/index.html';
-                return;
-            }
-
             confirmDeleteBtn.disabled = true;
             confirmDeleteBtn.textContent = 'Deleting...';
 
             try {
-                const response = await fetch(API_ORIGIN + '/user/deleteAccount', {
+                const response = await fetch(DELETE_ME_API, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body:
-                        'user_id=' + encodeURIComponent(userId) +
-                        '&password=' + encodeURIComponent(currentValue)
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ password: currentValue }),
                 });
-                const rawText = await response.text();
-                let data;
-                try {
-                    data = rawText ? JSON.parse(rawText) : {};
-                } catch (e) {
-                    throw new Error('Invalid server response');
-                }
+                const data = await readJson(response);
 
                 if (!response.ok || !data.success) {
-                    alert(data.message || 'Could not delete account.');
+                    alert(data.error || data.message || 'Could not delete account.');
                     return;
                 }
 
                 localStorage.removeItem('user_id');
                 localStorage.removeItem('role');
+                localStorage.removeItem('account_type');
                 alert(data.message || 'Account deleted successfully.');
                 window.location.href = 'login/index.html';
             } catch (err) {
                 console.error(err);
-                alert('Unable to delete account. Check that the server is running.');
+                alert('Unable to delete account. Check that Apache and PHP are running.');
             } finally {
                 confirmDeleteBtn.disabled = false;
                 confirmDeleteBtn.textContent = 'Delete account';
@@ -287,7 +322,7 @@
             }
         });
 
-         const logoutBtn = document.getElementById('logoutBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             const logoutModal = document.createElement('div');
             logoutModal.className = 'logout-modal';
@@ -317,72 +352,46 @@
                 logoutModal.classList.remove('show');
             });
 
-            logoutModal.querySelector('#confirmLogout')?.addEventListener('click', () => {
+            logoutModal.querySelector('#confirmLogout')?.addEventListener('click', async () => {
+                try {
+                    await fetch(LOGOUT_API, { method: 'GET', credentials: 'same-origin' });
+                } catch (e) {
+                    console.warn(e);
+                }
                 localStorage.removeItem('user_id');
                 localStorage.removeItem('role');
+                localStorage.removeItem('account_type');
+                logoutModal.classList.remove('show');
                 window.location.href = 'login/index.html';
             });
         }
 
-        const API_ORIGIN = window.API_ORIGIN || 'http://localhost:8080';
-
-        function parseProfileResponse(response, rawText) {
-            if (!rawText || !rawText.trim()) {
-                throw new Error('Empty response from server (HTTP ' + response.status + ').');
-            }
-            try {
-                return JSON.parse(rawText);
-            } catch (e) {
-                throw new Error('Not JSON (HTTP ' + response.status + '): ' + rawText.slice(0, 160));
-            }
-        }
-
-        async function fetchProfileOnce(userId) {
-            const url = API_ORIGIN + '/user/profile?user_id=' + encodeURIComponent(userId);
-            const response = await fetch(url);
-            const rawText = await response.text();
-            const data = parseProfileResponse(response, rawText);
-
-            if (!response.ok || !data.success || !data.data) {
-                throw new Error(data.message || ('HTTP ' + response.status));
-            }
-
-            const profile = data.data;
-            const fullName = (profile.first_name + ' ' + profile.last_name).trim();
-
-            document.getElementById('display-name').textContent = fullName || 'Unknown User';
-            document.getElementById('display-username').textContent = '@' + (profile.username || 'username');
-            document.getElementById('first-name').value = profile.first_name || '';
-            document.getElementById('last-name').value = profile.last_name || '';
-            document.getElementById('username').value = profile.username || '';
-            document.getElementById('email').value = profile.email || '';
-        }
-
         async function loadUserProfile() {
-            const userId = localStorage.getItem('user_id');
-            if (!userId) {
-                alert('No login session found. Please log in again.');
-                window.location.href = 'login/index.html';
-                return;
-            }
-
             try {
-                await fetchProfileOnce(userId);
+                const response = await fetch(ME_API, { credentials: 'same-origin' });
+                const data = await readJson(response);
+
+                if (response.status === 401) {
+                    window.location.href = 'login/index.html';
+                    return;
+                }
+
+                if (!response.ok || !data.user) {
+                    throw new Error(data.error || ('HTTP ' + response.status));
+                }
+
+                applyProfileFromMe(data);
             } catch (error) {
                 console.error('Profile fetch failed:', error);
-                alert('Unable to load profile.\n\n' +
-                    (error && error.message ? error.message : String(error)) +
-                    '\n\nAPI: ' + API_ORIGIN + '/user/profile');
+                alert('Unable to load profile.\n\n' + (error && error.message ? error.message : String(error)));
             }
         }
 
         loadUserProfile();
 
         document.getElementById('saveProfileBtn').addEventListener('click', async function () {
-            const userId = localStorage.getItem('user_id');
-            if (!userId) {
-                alert('No login session found. Please log in again.');
-                window.location.href = 'login/index.html';
+            if (!sessionNumericId || !sessionAccountType) {
+                alert('Session not ready. Please refresh the page.');
                 return;
             }
 
@@ -396,32 +405,33 @@
                 return;
             }
 
-            const formData =
-                'user_id=' + encodeURIComponent(userId) +
-                '&first_name=' + encodeURIComponent(firstName) +
-                '&last_name=' + encodeURIComponent(lastName) +
-                '&username=' + encodeURIComponent(username) +
-                '&email=' + encodeURIComponent(email);
+            const patch = {
+                first_name: firstName,
+                last_name: lastName,
+                username: username,
+                email: email,
+            };
+            if (sessionAccountType === 'admin') {
+                patch.admin_id = sessionNumericId;
+            } else {
+                patch.user_id = sessionNumericId;
+            }
 
+            const apiUrl = sessionAccountType === 'admin' ? ADMINS_API : USERS_API;
             const btn = document.getElementById('saveProfileBtn');
             btn.disabled = true;
 
             try {
-                const response = await fetch(API_ORIGIN + '/user/updateProfile', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData
+                const response = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(patch),
                 });
-                const rawText = await response.text();
-                let data;
-                try {
-                    data = rawText ? JSON.parse(rawText) : {};
-                } catch (e) {
-                    throw new Error('Invalid server response');
-                }
+                const data = await readJson(response);
 
-                if (!response.ok || !data.success) {
-                    alert(data.message || 'Could not save profile.');
+                if (!response.ok) {
+                    alert(data.error || 'Could not save profile.');
                     return;
                 }
 
@@ -430,7 +440,7 @@
                 showProfileToast('Successfully edited profile!');
             } catch (err) {
                 console.error(err);
-                alert('Unable to save profile. Check that the server is running.');
+                alert('Unable to save profile. Check that Apache and PHP are running.');
             } finally {
                 btn.disabled = false;
             }

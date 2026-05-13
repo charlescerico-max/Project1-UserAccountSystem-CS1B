@@ -114,6 +114,22 @@ html, body {
     color: var(--text);
 }
 
+.table-empty {
+    text-align: center;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 28px 16px !important;
+}
+
+.user-table tbody tr.is-loading td {
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.welcome-message.toast-error {
+    background: #7a1e1e;
+}
+
 .filter-row {
     display: flex;
     gap: 16px;

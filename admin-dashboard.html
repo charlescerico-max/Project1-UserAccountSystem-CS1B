@@ -39,7 +39,7 @@
                 <div class="filter-row">
                     <label class="search-field">
                         <span>🔍</span>
-                        <input type="search" placeholder="Search" aria-label="Search users">
+                        <input type="search" id="userSearchInput" placeholder="Search name, email, username" aria-label="Search users">
                     </label>
                     <div class="filter-chips">
                         <div class="role-filter-wrap">
@@ -77,130 +77,15 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Francene O.</td>
-                            <td>franceneo@gmail.com</td>
-                            <td>francepogi123</td>
-                            <td>Admin</td>
-                            <td>May 12, 2026</td>
-                            <td class="actions">
-                                <button class="action-btn edit" aria-label="Edit user">✎</button>
-                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Francene O.</td>
-                            <td>franceneo@gmail.com</td>
-                            <td>francepogi123</td>
-                            <td>User</td>
-                            <td>May 11, 2026</td>
-                            <td class="actions">
-                                <button class="action-btn edit" aria-label="Edit user">✎</button>
-                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Francene O.</td>
-                            <td>franceneo@gmail.com</td>
-                            <td>francepogi123</td>
-                            <td>User</td>
-                            <td>May 8, 2026</td>
-                            <td class="actions">
-                                <button class="action-btn edit" aria-label="Edit user">✎</button>
-                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Francene O.</td>
-                            <td>franceneo@gmail.com</td>
-                            <td>francepogi123</td>
-                            <td>Admin</td>
-                            <td>April 15, 2026</td>
-                            <td class="actions">
-                                <button class="action-btn edit" aria-label="Edit user">✎</button>
-                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Francene O.</td>
-                            <td>franceneo@gmail.com</td>
-                            <td>francepogi123</td>
-                            <td>User</td>
-                            <td>June 1, 2025</td>
-                            <td class="actions">
-                                <button class="action-btn edit" aria-label="Edit user">✎</button>
-                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Francene O.</td>
-                            <td>franceneo@gmail.com</td>
-                            <td>francepogi123</td>
-                            <td>Admin</td>
-                            <td>March 1, 2026</td>
-                            <td class="actions">
-                                <button class="action-btn edit" aria-label="Edit user">✎</button>
-                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Francene O.</td>
-                            <td>franceneo@gmail.com</td>
-                            <td>francepogi123</td>
-                            <td>User</td>
-                            <td>April 28, 2028</td>
-                            <td class="actions">
-                                <button class="action-btn edit" aria-label="Edit user">✎</button>
-                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Francene O.</td>
-                            <td>franceneo@gmail.com</td>
-                            <td>francepogi123</td>
-                            <td>Admin</td>
-                            <td>May 10, 2026</td>
-                            <td class="actions">
-                                <button class="action-btn edit" aria-label="Edit user">✎</button>
-                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Francene O.</td>
-                            <td>franceneo@gmail.com</td>
-                            <td>francepogi123</td>
-                            <td>User</td>
-                            <td>January 15, 2024</td>
-                            <td class="actions">
-                                <button class="action-btn edit" aria-label="Edit user">✎</button>
-                                <button class="action-btn delete" aria-label="Delete user">🗑</button>
-                            </td>
+                    <tbody id="userTableBody">
+                        <tr class="is-loading">
+                            <td colspan="7">Loading users…</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <div class="pagination">
-                <span class="dot active"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-            </div>
+            <div class="pagination" id="userPagination" aria-live="polite"></div>
         </section>
     </main>
 
@@ -221,8 +106,12 @@
             <p class="confirm-title">Edit User</p>
             <div style="text-align: left;">
                 <div class="auth-group">
-                    <label for="editFullName">Full Name</label>
-                    <input type="text" id="editFullName" placeholder="Enter full name">
+                    <label for="editFirstName">First name</label>
+                    <input type="text" id="editFirstName" placeholder="First name">
+                </div>
+                <div class="auth-group">
+                    <label for="editLastName">Last name</label>
+                    <input type="text" id="editLastName" placeholder="Last name">
                 </div>
                 <div class="auth-group">
                     <label for="editEmail">Email Address</label>
@@ -233,11 +122,8 @@
                     <input type="text" id="editUsername" placeholder="Enter username">
                 </div>
                 <div class="auth-group">
-                    <label for="editRole">Role</label>
-                    <select id="editRole" style="width: 100%; padding: 14px 18px; border-radius: 999px; border: 1px solid #d2d2d2; background: #f3f3f3; font-size: 0.95rem; color: #111; box-sizing: border-box;">
-                        <option value="User">User</option>
-                        <option value="Admin">Admin</option>
-                    </select>
+                    <label for="editNewPassword">New password (optional)</label>
+                    <input type="password" id="editNewPassword" placeholder="Leave blank to keep current password" autocomplete="new-password">
                 </div>
             </div>
             <div class="confirm-actions">
@@ -259,29 +145,22 @@
         </div>
     </div>
 
-    <!-- Delete User Auth Overlay -->
-    <div class="overlay hidden" id="deleteAuthOverlay">
-        <div class="confirm-box delete-step">
-            <p class="confirm-title">Confirm deletion</p>
-            <p class="confirm-subtitle">Please enter your password to confirm user deletion.</p>
-            <div class="auth-group">
-                <label for="adminPassword">Password</label>
-                <input type="password" id="adminPassword" placeholder="Enter your password">
-            </div>
-            <div class="confirm-actions">
-                <button id="cancelAuthDeleteBtn" type="button" class="btn-cancel">Cancel</button>
-                <button id="confirmDeleteUserBtn" type="button" class="btn-yes">Delete User</button>
-            </div>
-        </div>
-    </div>
-
     <div class="welcome-message hidden" id="welcomeMessage" role="status" aria-live="polite"></div>
 
     <script>
-        let selectedUserData = null;
         const API_ORIGIN = window.API_ORIGIN || 'http://localhost:8080';
 
-        const userTableBody = document.querySelector('.user-table tbody');
+        const PAGE_BASE = new URL('.', window.location.href).href;
+        function apiPhp(path) {
+            return new URL(path, PAGE_BASE).href;
+        }
+        const USERS_API = apiPhp('api/users.php');
+        const ADMINS_API = apiPhp('api/admins.php');
+        const LOGOUT_API = apiPhp('api/logout.php');
+
+        const userTableBody = document.getElementById('userTableBody');
+        const userPagination = document.getElementById('userPagination');
+        const userSearchInput = document.getElementById('userSearchInput');
         const roleFilterBtn = document.getElementById('roleFilterBtn');
         const roleFilterPanel = document.getElementById('roleFilterPanel');
         const roleFilterClear = document.getElementById('roleFilterClear');
@@ -296,6 +175,68 @@
             week: 'Past week',
             today: 'Today'
         };
+
+        let currentRoleFilter = null;
+        let currentTimePreset = 'all';
+        let searchText = '';
+        let selectedAccountType = null;
+        let selectedAccountId = null;
+        let allAccounts = [];
+
+        function mergeAccountLists(usersArr, adminsArr) {
+            const u = (usersArr || []).map((row) => ({
+                accountType: 'user',
+                id: Number(row.user_id),
+                user_id: Number(row.user_id),
+                first_name: row.first_name,
+                last_name: row.last_name,
+                email: row.email,
+                username: row.username,
+                created_at: row.created_at,
+                created_by: row.created_by,
+                updated_by: row.updated_by,
+                updated_at: row.updated_at,
+            }));
+            const a = (adminsArr || []).map((row) => ({
+                accountType: 'admin',
+                id: Number(row.admin_id),
+                admin_id: Number(row.admin_id),
+                first_name: row.first_name,
+                last_name: row.last_name,
+                email: row.email,
+                username: row.username,
+                created_at: row.created_at,
+                created_by: row.created_by,
+                updated_by: row.updated_by,
+                updated_at: row.updated_at,
+            }));
+            return u.concat(a);
+        }
+
+        function findAccount(accountType, id) {
+            return allAccounts.find((x) => x.accountType === accountType && x.id === id);
+        }
+
+        function escapeHtml(s) {
+            return String(s ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function showToast(text, isError) {
+            const message = document.getElementById('welcomeMessage');
+            if (!message) return;
+            message.textContent = text;
+            message.classList.toggle('toast-error', !!isError);
+            message.classList.remove('hidden');
+            clearTimeout(showToast._t);
+            showToast._t = setTimeout(() => {
+                message.classList.add('hidden');
+                message.classList.remove('toast-error');
+            }, 3200);
+        }
 
         function normalizeRoleFromCell(text) {
             const t = (text || '').trim().toLowerCase();
@@ -316,27 +257,61 @@
 
         function syncRowAttributes() {
             userTableBody?.querySelectorAll('tr').forEach((tr) => {
+                if (!tr.dataset.accountId) {
+                    return;
+                }
                 const cells = tr.querySelectorAll('td');
                 if (cells.length < 6) {
                     return;
                 }
                 tr.dataset.role = normalizeRoleFromCell(cells[4].textContent);
                 const jm = parseJoinDateMs(cells[5].textContent);
-                tr.dataset.joinMs = Number.isNaN(jm) ? '' : String(jm);
+                tr.dataset.joinMs = Number.isNaN(jm) ? (tr.dataset.joinMs || '') : String(jm);
             });
         }
 
-        let currentRoleFilter = null;
-        let currentTimePreset = 'all';
+        function formatJoinDate(createdAt) {
+            if (!createdAt) return '—';
+            const d = new Date(String(createdAt).replace(' ', 'T'));
+            if (Number.isNaN(d.getTime())) {
+                return String(createdAt);
+            }
+            return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function joinMsFromCreated(createdAt) {
+            const d = new Date(String(createdAt || '').replace(' ', 'T'));
+            if (Number.isNaN(d.getTime())) {
+                return NaN;
+            }
+            return startOfLocalDay(d);
+        }
 
         function getVisibleBodyRows() {
-            return Array.from(userTableBody?.querySelectorAll('tr') || []).filter((tr) => !tr.classList.contains('filtered-out'));
+            return Array.from(userTableBody?.querySelectorAll('tr') || []).filter((tr) => {
+                if (!tr.dataset.accountId) {
+                    return false;
+                }
+                return !tr.classList.contains('filtered-out');
+            });
         }
 
         function getVisibleBodyCheckboxes() {
             return getVisibleBodyRows()
                 .map((tr) => tr.querySelector('input[type="checkbox"]'))
                 .filter(Boolean);
+        }
+
+        function rowMatchesSearch(tr) {
+            if (!searchText) {
+                return true;
+            }
+            const cells = tr.querySelectorAll('td');
+            if (cells.length < 6) {
+                return true;
+            }
+            const blob = [1, 2, 3].map((i) => (cells[i].textContent || '').toLowerCase()).join(' ');
+            return blob.includes(searchText);
         }
 
         function joinMatchesTimePreset(joinMs, preset) {
@@ -369,11 +344,16 @@
 
         function refreshTableFilters() {
             userTableBody?.querySelectorAll('tr').forEach((tr) => {
+                if (!tr.dataset.accountId) {
+                    tr.classList.remove('filtered-out');
+                    return;
+                }
                 const rowRole = tr.dataset.role || 'user';
                 const joinMs = parseFloat(tr.dataset.joinMs, 10);
                 const roleOk = !currentRoleFilter || rowRole === currentRoleFilter;
                 const dateOk = joinMatchesTimePreset(joinMs, currentTimePreset);
-                tr.classList.toggle('filtered-out', !roleOk || !dateOk);
+                const searchOk = rowMatchesSearch(tr);
+                tr.classList.toggle('filtered-out', !roleOk || !dateOk || !searchOk);
             });
 
             roleFilterPanel?.querySelectorAll('.role-filter-option').forEach((btn) => {
@@ -456,8 +436,212 @@
             localStorage.setItem('sidebarOpen', open ? '1' : '0');
         }
 
-        syncRowAttributes();
-        refreshTableFilters();
+        function renderAccounts(merged) {
+            allAccounts = merged;
+            if (!userTableBody) {
+                return;
+            }
+            if (!merged.length) {
+                userTableBody.innerHTML = '<tr><td colspan="7" class="table-empty">No users or admins yet.</td></tr>';
+                if (userPagination) {
+                    userPagination.textContent = '0 accounts';
+                }
+                refreshTableFilters();
+                return;
+            }
+
+            let nu = 0;
+            let na = 0;
+            userTableBody.innerHTML = merged.map((acc) => {
+                if (acc.accountType === 'admin') {
+                    na += 1;
+                } else {
+                    nu += 1;
+                }
+                const fn = escapeHtml(acc.first_name);
+                const full = escapeHtml(`${acc.first_name || ''} ${acc.last_name || ''}`.trim()) || '—';
+                const jm = joinMsFromCreated(acc.created_at);
+                const jmAttr = Number.isNaN(jm) ? '' : String(jm);
+                const roleLabel = acc.accountType === 'admin' ? 'Admin' : 'User';
+                const rowRole = acc.accountType === 'admin' ? 'admin' : 'user';
+                return (
+                    '<tr data-account-type="' + acc.accountType + '" data-account-id="' + acc.id + '" data-role="' + rowRole + '" data-join-ms="' + jmAttr + '">' +
+                    '<td><input type="checkbox" aria-label="Select ' + fn + '"></td>' +
+                    '<td>' + full + '</td>' +
+                    '<td>' + escapeHtml(acc.email) + '</td>' +
+                    '<td>' + escapeHtml(acc.username) + '</td>' +
+                    '<td>' + roleLabel + '</td>' +
+                    '<td>' + escapeHtml(formatJoinDate(acc.created_at)) + '</td>' +
+                    '<td class="actions">' +
+                    '<button type="button" class="action-btn edit" aria-label="Edit account">✎</button>' +
+                    '<button type="button" class="action-btn delete" aria-label="Delete account">🗑</button>' +
+                    '</td></tr>'
+                );
+            }).join('');
+
+            syncRowAttributes();
+            refreshTableFilters();
+            if (userPagination) {
+                userPagination.textContent = merged.length + ' accounts (' + nu + ' users, ' + na + ' admins)';
+            }
+        }
+
+        async function loadAccounts() {
+            if (!userTableBody) {
+                return;
+            }
+            userTableBody.innerHTML = '<tr class="is-loading"><td colspan="7">Loading users and admins…</td></tr>';
+            try {
+                const [ru, ra] = await Promise.all([
+                    fetch(USERS_API, { credentials: 'same-origin' }),
+                    fetch(ADMINS_API, { credentials: 'same-origin' }),
+                ]);
+                const du = await ru.json().catch(() => ({}));
+                const da = await ra.json().catch(() => ({}));
+                if (!ru.ok) {
+                    throw new Error(du.error || ('Users API HTTP ' + ru.status));
+                }
+                if (!ra.ok) {
+                    throw new Error(da.error || ('Admins API HTTP ' + ra.status));
+                }
+                if (!Array.isArray(du.users) || !Array.isArray(da.admins)) {
+                    throw new Error('Unexpected response');
+                }
+                renderAccounts(mergeAccountLists(du.users, da.admins));
+            } catch (err) {
+                console.error(err);
+                userTableBody.innerHTML = '<tr><td colspan="7" class="table-empty">Could not load accounts. Run <code>database/schema_admins.sql</code> if the <code>admins</code> table is missing, and check Apache/PHP/MySQL.</td></tr>';
+                showToast('Failed to load accounts', true);
+                if (userPagination) {
+                    userPagination.textContent = '';
+                }
+            }
+        }
+
+        async function readJson(res) {
+            const text = await res.text();
+            try {
+                return JSON.parse(text);
+            } catch {
+                return { _raw: text };
+            }
+        }
+
+        userTableBody?.addEventListener('click', (e) => {
+            const editBtn = e.target.closest('.action-btn.edit');
+            const delBtn = e.target.closest('.action-btn.delete');
+            const row = e.target.closest('tr');
+            if (!row || !row.dataset.accountId) {
+                return;
+            }
+            const accountType = row.dataset.accountType;
+            const id = Number(row.dataset.accountId);
+            const u = findAccount(accountType, id);
+            if (editBtn && u) {
+                selectedAccountType = accountType;
+                selectedAccountId = id;
+                document.getElementById('editFirstName').value = u.first_name || '';
+                document.getElementById('editLastName').value = u.last_name || '';
+                document.getElementById('editEmail').value = u.email || '';
+                document.getElementById('editUsername').value = u.username || '';
+                document.getElementById('editNewPassword').value = '';
+                document.getElementById('editUserOverlay').classList.remove('hidden');
+            }
+            if (delBtn) {
+                selectedAccountType = accountType;
+                selectedAccountId = id;
+                document.getElementById('deleteConfirmOverlay').classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('cancelEditBtn')?.addEventListener('click', () => {
+            document.getElementById('editUserOverlay').classList.add('hidden');
+        });
+
+        document.getElementById('saveEditBtn')?.addEventListener('click', async () => {
+            if (!selectedAccountId || !selectedAccountType) {
+                return;
+            }
+            const patch = {
+                first_name: document.getElementById('editFirstName').value.trim(),
+                last_name: document.getElementById('editLastName').value.trim(),
+                email: document.getElementById('editEmail').value.trim(),
+                username: document.getElementById('editUsername').value.trim()
+            };
+            const np = document.getElementById('editNewPassword').value;
+            if (np) {
+                patch.password = np;
+            }
+            if (selectedAccountType === 'admin') {
+                patch.admin_id = selectedAccountId;
+            } else {
+                patch.user_id = selectedAccountId;
+            }
+            if (!patch.first_name || !patch.last_name || !patch.email || !patch.username) {
+                showToast('First name, last name, email, and username are required', true);
+                return;
+            }
+            const btn = document.getElementById('saveEditBtn');
+            const apiUrl = selectedAccountType === 'admin' ? ADMINS_API : USERS_API;
+            btn.disabled = true;
+            try {
+                const res = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(patch)
+                });
+                const data = await readJson(res);
+                if (!res.ok) {
+                    throw new Error(data.error || ('HTTP ' + res.status));
+                }
+                document.getElementById('editUserOverlay').classList.add('hidden');
+                showToast('Account updated');
+                await loadAccounts();
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'Update failed', true);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('cancelDeleteConfirmBtn')?.addEventListener('click', () => {
+            document.getElementById('deleteConfirmOverlay').classList.add('hidden');
+        });
+
+        document.getElementById('proceedDeleteBtn')?.addEventListener('click', async () => {
+            if (!selectedAccountId || !selectedAccountType) {
+                document.getElementById('deleteConfirmOverlay').classList.add('hidden');
+                return;
+            }
+            const btn = document.getElementById('proceedDeleteBtn');
+            const apiUrl = selectedAccountType === 'admin' ? ADMINS_API : USERS_API;
+            btn.disabled = true;
+            try {
+                const res = await fetch(apiUrl + '?id=' + encodeURIComponent(String(selectedAccountId)), {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                });
+                const data = await readJson(res);
+                if (!res.ok) {
+                    throw new Error(data.error || ('HTTP ' + res.status));
+                }
+                document.getElementById('deleteConfirmOverlay').classList.add('hidden');
+                showToast('Account deleted');
+                await loadAccounts();
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'Delete failed', true);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        userSearchInput?.addEventListener('input', () => {
+            searchText = (userSearchInput.value || '').trim().toLowerCase();
+            refreshTableFilters();
+        });
 
         roleFilterBtn?.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -516,7 +700,6 @@
             setSidebarState(!document.body.classList.contains('nav-open'));
         });
 
-        // Select all checkbox — only visible rows (respects role and join-date filters)
         selectAllCheckbox?.addEventListener('change', () => {
             getVisibleBodyCheckboxes().forEach((checkbox) => {
                 checkbox.checked = selectAllCheckbox.checked;
@@ -525,7 +708,9 @@
 
         userTableBody?.addEventListener('change', (e) => {
             const cb = e.target;
-            if (cb.type !== 'checkbox' || cb.closest('thead')) return;
+            if (cb.type !== 'checkbox' || cb.closest('thead')) {
+                return;
+            }
             const visible = getVisibleBodyCheckboxes();
             const allChecked = visible.length > 0 && visible.every((c) => c.checked);
             const someChecked = visible.some((c) => c.checked);
@@ -535,138 +720,49 @@
             }
         });
 
-        // Edit user functionality
-        document.querySelectorAll('.action-btn.edit').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const row = e.target.closest('tr');
-                const cells = row.querySelectorAll('td');
-                
-                selectedUserData = {
-                    fullName: cells[1].textContent,
-                    email: cells[2].textContent,
-                    username: cells[3].textContent,
-                    role: cells[4].textContent
-                };
-
-                document.getElementById('editFullName').value = selectedUserData.fullName;
-                document.getElementById('editEmail').value = selectedUserData.email;
-                document.getElementById('editUsername').value = selectedUserData.username;
-                document.getElementById('editRole').value = selectedUserData.role;
-
-                document.getElementById('editUserOverlay').classList.remove('hidden');
-            });
-        });
-
-        document.getElementById('cancelEditBtn')?.addEventListener('click', () => {
-            document.getElementById('editUserOverlay').classList.add('hidden');
-        });
-
-        document.getElementById('saveEditBtn')?.addEventListener('click', () => {
-            alert('User updated successfully!');
-            document.getElementById('editUserOverlay').classList.add('hidden');
-        });
-
-        // Delete user functionality
-        document.querySelectorAll('.action-btn.delete').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const row = e.target.closest('tr');
-                const cells = row.querySelectorAll('td');
-                
-                selectedUserData = {
-                    fullName: cells[1].textContent,
-                    email: cells[2].textContent,
-                    username: cells[3].textContent,
-                    role: cells[4].textContent
-                };
-
-                document.getElementById('deleteConfirmOverlay').classList.remove('hidden');
-            });
-        });
-
-        document.getElementById('cancelDeleteConfirmBtn')?.addEventListener('click', () => {
-            document.getElementById('deleteConfirmOverlay').classList.add('hidden');
-        });
-
-        document.getElementById('proceedDeleteBtn')?.addEventListener('click', () => {
-            document.getElementById('deleteConfirmOverlay').classList.add('hidden');
-            document.getElementById('deleteAuthOverlay').classList.remove('hidden');
-            document.getElementById('adminPassword').focus();
-        });
-
-        document.getElementById('cancelAuthDeleteBtn')?.addEventListener('click', () => {
-            document.getElementById('deleteAuthOverlay').classList.add('hidden');
-            document.getElementById('adminPassword').value = '';
-        });
-
-        document.getElementById('confirmDeleteUserBtn')?.addEventListener('click', () => {
-            const password = document.getElementById('adminPassword').value.trim();
-
-            if (!password) {
-                alert('Please enter your password.');
-                return;
-            }
-
-            alert('User deleted successfully!');
-            document.getElementById('deleteAuthOverlay').classList.add('hidden');
-            document.getElementById('adminPassword').value = '';
-        });
-
-        // Close overlays and filter menus on Escape
         window.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
                 closeFilterPanels();
-                document.getElementById('editUserOverlay').classList.add('hidden');
-                document.getElementById('deleteConfirmOverlay').classList.add('hidden');
-                document.getElementById('deleteAuthOverlay').classList.add('hidden');
+                document.getElementById('editUserOverlay')?.classList.add('hidden');
+                document.getElementById('deleteConfirmOverlay')?.classList.add('hidden');
             }
         });
 
-        // Logout functionality
-
         const logoutBtn = document.getElementById('logoutBtn');
-
         if (logoutBtn) {
-
             logoutBtn.addEventListener('click', () => {
-
                 document.getElementById('logoutModal').classList.add('show');
-
             });
-
         }
 
         const logoutModal = document.getElementById('logoutModal');
-
         if (logoutModal) {
-
             logoutModal.addEventListener('click', (event) => {
-
                 if (event.target === logoutModal) {
-
                     logoutModal.classList.remove('show');
-
                 }
-
             });
-
             document.getElementById('cancelLogout')?.addEventListener('click', () => {
-
                 logoutModal.classList.remove('show');
-
             });
-
-            document.getElementById('confirmLogout')?.addEventListener('click', () => {
-
+            document.getElementById('confirmLogout')?.addEventListener('click', async () => {
+                try {
+                    await fetch(LOGOUT_API, { method: 'GET', credentials: 'same-origin' });
+                } catch (e) {
+                    console.warn(e);
+                }
+                logoutModal.classList.remove('show');
                 window.location.href = 'login/index.html';
-
             });
-
         }
 
         function showWelcomeMessage(firstName) {
             const message = document.getElementById('welcomeMessage');
-            if (!message) return;
+            if (!message) {
+                return;
+            }
             message.textContent = 'Welcome, ' + (firstName || 'Admin');
+            message.classList.remove('toast-error');
             message.classList.remove('hidden');
             setTimeout(() => {
                 message.classList.add('hidden');
@@ -696,6 +792,7 @@
             }
         }
 
+        loadAccounts();
         loadWelcomeMessage();
     </script>
 </body>

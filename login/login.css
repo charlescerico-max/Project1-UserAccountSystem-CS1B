@@ -139,11 +139,13 @@ body, html {
 .input-group {
     position: relative;
     margin-bottom: 20px;
+    display: block;
 }
 
 .input-group input {
     width: 100%;
-    padding: 14px 40px 14px 45px; /* Space for icons */
+    height: 50px;
+    padding: 0 45px;
     background-color: #e8e8e8;
     border: 1px solid #dcdcdc;
     border-radius: 30px;
@@ -151,6 +153,7 @@ body, html {
     font-size: 15px;
     outline: none;
     transition: border-color 0.3s ease;
+    display: block;
 }
 
 .input-group input:focus {
@@ -163,7 +166,10 @@ body, html {
     top: 50%;
     transform: translateY(-50%);
     font-size: 16px;
+    line-height: 1;
     opacity: 0.6;
+    pointer-events: none;
+    z-index: 2;
 }
 
 .input-group .icon-right {
@@ -172,7 +178,39 @@ body, html {
     top: 50%;
     transform: translateY(-50%);
     font-size: 16px;
+    line-height: 1;
     opacity: 0.5;
+}
+
+.input-group .password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 6px 8px;
+    opacity: 0.6;
+    border-radius: 8px;
+    z-index: 3;
+    width: auto;
+    height: auto;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.input-group .password-toggle:hover {
+    opacity: 1;
+}
+
+.input-group .password-toggle:focus-visible {
+    outline: 2px solid #888;
+    outline-offset: 2px;
 }
 
 /* Form Options (Remember Me & Dropdown) */

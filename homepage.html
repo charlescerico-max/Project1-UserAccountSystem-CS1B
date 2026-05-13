@@ -97,6 +97,9 @@
     <div class="welcome-message hidden" id="welcomeMessage" role="status" aria-live="polite"></div>
 
     <script>
+        const ME_API = new URL('api/me.php', window.location.href).href;
+        const LOGOUT_API = new URL('api/logout.php', window.location.href).href;
+
         function setSidebarState(open) {
             document.body.classList.toggle('nav-open', open);
             localStorage.setItem('sidebarOpen', open ? '1' : '0');
@@ -129,31 +132,25 @@
                 logoutModal.classList.remove('show');
             });
 
-            document.getElementById('confirmLogout')?.addEventListener('click', () => {
+            document.getElementById('confirmLogout')?.addEventListener('click', async () => {
+                try {
+                    await fetch(LOGOUT_API, { method: 'GET', credentials: 'same-origin' });
+                } catch (e) {
+                    console.warn(e);
+                }
                 localStorage.removeItem('user_id');
                 localStorage.removeItem('role');
+                localStorage.removeItem('account_type');
+                logoutModal.classList.remove('show');
                 window.location.href = 'login/index.html';
             });
         }
 
-        // Same machine as Live Server (127.0.0.1:5500); backend must listen on 8080.
-        // Override in console: window.API_ORIGIN = 'http://localhost:8080'
-        const API_ORIGIN = window.API_ORIGIN || 'http://localhost:8080';
-
-        function parseProfileResponse(response, rawText) {
-            if (!rawText || !rawText.trim()) {
-                throw new Error('Empty response from server (HTTP ' + response.status + '). Restart Java after compiling; route is GET /user/profile.');
-            }
-            try {
-                return JSON.parse(rawText);
-            } catch (e) {
-                throw new Error('Not JSON (HTTP ' + response.status + '): ' + rawText.slice(0, 160));
-            }
-        }
-
         function showWelcomeMessage(firstName) {
             const message = document.getElementById('welcomeMessage');
-            if (!message) return;
+            if (!message) {
+                return;
+            }
             message.textContent = 'Welcome, ' + (firstName || 'User');
             message.classList.remove('hidden');
             setTimeout(() => {
@@ -161,47 +158,46 @@
             }, 2000);
         }
 
-        async function fetchProfileOnce(userId) {
-            const url = API_ORIGIN + '/user/profile?user_id=' + encodeURIComponent(userId);
-            const response = await fetch(url);
-            const rawText = await response.text();
-            const data = parseProfileResponse(response, rawText);
-
-            if (!response.ok || !data.success || !data.data) {
-                const msg = data.message || ('HTTP ' + response.status);
-                throw new Error(msg);
-            }
-
-            const profile = data.data;
-            const fullName = (profile.first_name + ' ' + profile.last_name).trim();
-
+        function applyProfileToPage(profile) {
+            const fullName = ((profile.first_name || '') + ' ' + (profile.last_name || '')).trim();
             document.getElementById('display-name').textContent = fullName || 'Unknown User';
             document.getElementById('display-username').textContent = '@' + (profile.username || 'username');
             document.getElementById('first-name-input').value = profile.first_name || '';
             document.getElementById('last-name-input').value = profile.last_name || '';
             document.getElementById('username-input').value = profile.username || '';
             document.getElementById('email-input').value = profile.email || '';
-            if (sessionStorage.getItem('show_login_welcome') === '1') {
-                sessionStorage.removeItem('show_login_welcome');
-                showWelcomeMessage(profile.first_name);
-            }
         }
 
         async function loadUserProfile() {
-            const userId = localStorage.getItem('user_id');
-            if (!userId) {
-                alert('No login session found. Please log in again.');
-                window.location.href = 'login/index.html';
-                return;
-            }
-
             try {
-                await fetchProfileOnce(userId);
+                const response = await fetch(ME_API, { credentials: 'same-origin' });
+                const text = await response.text();
+                let data = {};
+                try {
+                    data = text ? JSON.parse(text) : {};
+                } catch {
+                    data = { error: text || 'Invalid response' };
+                }
+
+                if (response.status === 401) {
+                    window.location.href = 'login/index.html';
+                    return;
+                }
+
+                if (!response.ok || !data.user) {
+                    const msg = data.error || ('HTTP ' + response.status);
+                    throw new Error(msg);
+                }
+
+                applyProfileToPage(data.user);
+
+                if (sessionStorage.getItem('show_login_welcome') === '1') {
+                    sessionStorage.removeItem('show_login_welcome');
+                    showWelcomeMessage(data.user.first_name);
+                }
             } catch (error) {
                 console.error('Profile fetch failed:', error);
-                alert('Unable to load profile.\n\n' +
-                    (error && error.message ? error.message : String(error)) +
-                    '\n\nAPI: ' + API_ORIGIN + '/user/profile');
+                alert('Unable to load profile.\n\n' + (error && error.message ? error.message : String(error)));
             }
         }
 

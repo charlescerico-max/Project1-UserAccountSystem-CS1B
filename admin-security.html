@@ -37,7 +37,7 @@
     <main class="main-content">
         <section class="security-panel">
             <div class="security-heading">
-                <span class="user-tag">First Name Last Name • Flintlock</span>
+                <span class="user-tag" id="security-user-tag">Loading… • Flintlock</span>
                 <h1>Change password</h1>
                 <p>The password must be at least 8 characters long and include at least one uppercase letter, one number (0–9), and one special character such as @, #, !, %, or _.</p>
             </div>
@@ -45,19 +45,19 @@
             <form class="security-form">
                 <label class="field-label" for="current-password">Current Password</label>
                 <div class="field-row">
-                    <input id="current-password" type="password" value="password123">
+                    <input id="current-password" type="password" autocomplete="current-password" placeholder="Enter current password">
                     <button type="button" class="icon-button" data-toggle="current-password">👁</button>
                 </div>
 
                 <label class="field-label" for="new-password">Enter your new password</label>
                 <div class="field-row">
-                    <input id="new-password" type="password" value="newpassword123">
+                    <input id="new-password" type="password" autocomplete="new-password" placeholder="Enter new password">
                     <button type="button" class="icon-button" data-toggle="new-password">👁</button>
                 </div>
 
                 <label class="field-label" for="confirm-password">Confirm your new password</label>
                 <div class="field-row">
-                    <input id="confirm-password" type="password" value="newpassword123">
+                    <input id="confirm-password" type="password" autocomplete="new-password" placeholder="Confirm new password">
                     <button type="button" class="icon-button" data-toggle="confirm-password">👁</button>
                 </div>
 
@@ -77,41 +77,100 @@
         </div>
     </div>
     <script>
-        const currentStoredPassword = 'password123';
+        const ME_API = new URL('api/me.php', window.location.href).href;
+        const CHANGE_PASSWORD_API = new URL('api/change-password.php', window.location.href).href;
+        const LOGOUT_API = new URL('api/logout.php', window.location.href).href;
 
         const securityForm = document.querySelector('.security-form');
         const currentInput = document.getElementById('current-password');
         const newInput = document.getElementById('new-password');
         const confirmInput = document.getElementById('confirm-password');
         const messageBox = document.getElementById('security-message');
+        const submitBtn = securityForm.querySelector('button[type="submit"]');
 
         function showMessage(text, isError = true) {
             messageBox.textContent = text;
             messageBox.style.color = isError ? '#c0392b' : '#1a8f1a';
         }
 
+        function meetsPasswordPolicy(password) {
+            if (!password || password.length < 8) {
+                return false;
+            }
+            if (!/[A-Z]/.test(password)) {
+                return false;
+            }
+            if (!/[0-9]/.test(password)) {
+                return false;
+            }
+            if (!/[@#!%_]/.test(password)) {
+                return false;
+            }
+            return true;
+        }
+
         function togglePasswordVisibility(targetId) {
             const input = document.getElementById(targetId);
-            if (!input) return;
+            if (!input) {
+                return;
+            }
             input.type = input.type === 'password' ? 'text' : 'password';
         }
 
-        document.querySelectorAll('.icon-button[data-toggle]').forEach(button => {
+        document.querySelectorAll('.icon-button[data-toggle]').forEach((button) => {
             button.addEventListener('click', () => {
                 const target = button.dataset.toggle;
                 togglePasswordVisibility(target);
             });
         });
 
-        securityForm.addEventListener('submit', event => {
+        async function readJson(res) {
+            const text = await res.text();
+            try {
+                return text ? JSON.parse(text) : {};
+            } catch {
+                return { _raw: text };
+            }
+        }
+
+        async function loadHeadingFromMe() {
+            const tag = document.getElementById('security-user-tag');
+            try {
+                const response = await fetch(ME_API, { credentials: 'same-origin' });
+                const data = await readJson(response);
+
+                if (response.status === 401) {
+                    window.location.href = 'login/index.html';
+                    return;
+                }
+
+                if (!response.ok || !data.user) {
+                    tag.textContent = 'Account • Flintlock';
+                    return;
+                }
+
+                if (data.account_type !== 'admin') {
+                    window.location.href = 'security.html';
+                    return;
+                }
+
+                const d = data.user;
+                const full = ((d.first_name || '') + ' ' + (d.last_name || '')).trim() || 'Account';
+                tag.textContent = full + ' • Flintlock';
+            } catch (e) {
+                tag.textContent = 'Account • Flintlock';
+            }
+        }
+
+        securityForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            const currentValue = currentInput.value.trim();
-            const newValue = newInput.value.trim();
-            const confirmValue = confirmInput.value.trim();
+            const currentValue = currentInput.value;
+            const newValue = newInput.value;
+            const confirmValue = confirmInput.value;
 
-            if (currentValue !== currentStoredPassword) {
-                showMessage('Current password does not match our records.');
+            if (!currentValue) {
+                showMessage('Please enter your current password.');
                 return;
             }
 
@@ -125,11 +184,44 @@
                 return;
             }
 
-            showMessage('Password changed successfully.', false);
-            currentInput.value = '';
-            newInput.value = '';
-            confirmInput.value = '';
+            if (!meetsPasswordPolicy(newValue)) {
+                showMessage('The password must be at least 8 characters long and include at least one uppercase letter, one number (0–9), and one special character such as @, #, !, %, or _.');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            showMessage('');
+
+            try {
+                const response = await fetch(CHANGE_PASSWORD_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        current_password: currentValue,
+                        new_password: newValue,
+                    }),
+                });
+                const data = await readJson(response);
+
+                if (!response.ok || !data.success) {
+                    showMessage(data.message || data.error || ('Could not update password (HTTP ' + response.status + ').'));
+                    return;
+                }
+
+                showMessage(data.message || 'Password changed successfully.', false);
+                currentInput.value = '';
+                newInput.value = '';
+                confirmInput.value = '';
+            } catch (err) {
+                console.error(err);
+                showMessage('Unable to change password. Check that Apache and PHP are running.');
+            } finally {
+                submitBtn.disabled = false;
+            }
         });
+
+        loadHeadingFromMe();
 
         function setSidebarState(open) {
             document.body.classList.toggle('nav-open', open);
@@ -144,46 +236,36 @@
             setSidebarState(!document.body.classList.contains('nav-open'));
         });
 
-        // Logout functionality
-
         const logoutBtn = document.getElementById('logoutBtn');
-
-        if (logoutBtn) {
-
-            logoutBtn.addEventListener('click', () => {
-
-                document.getElementById('logoutModal').classList.add('show');
-
-            });
-
-        }
-
         const logoutModal = document.getElementById('logoutModal');
 
-        if (logoutModal) {
+        if (logoutBtn && logoutModal) {
+            logoutBtn.addEventListener('click', () => {
+                logoutModal.classList.add('show');
+            });
 
             logoutModal.addEventListener('click', (event) => {
-
                 if (event.target === logoutModal) {
-
                     logoutModal.classList.remove('show');
-
                 }
-
             });
 
             document.getElementById('cancelLogout')?.addEventListener('click', () => {
-
                 logoutModal.classList.remove('show');
-
             });
 
-            document.getElementById('confirmLogout')?.addEventListener('click', () => {
-
+            document.getElementById('confirmLogout')?.addEventListener('click', async () => {
+                try {
+                    await fetch(LOGOUT_API, { method: 'GET', credentials: 'same-origin' });
+                } catch (e) {
+                    console.warn(e);
+                }
+                localStorage.removeItem('user_id');
+                localStorage.removeItem('role');
+                localStorage.removeItem('account_type');
+                logoutModal.classList.remove('show');
                 window.location.href = 'login/index.html';
-
             });
-
         }
     </script>
 </body>
