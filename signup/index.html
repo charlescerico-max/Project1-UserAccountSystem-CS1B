@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - Flintlock</title>
     
-    <link rel="stylesheet" href="signup.css">
+    <link rel="stylesheet" href="signup.css?v=1">
 </head>
 <body>
 
@@ -52,11 +52,13 @@
                     <div class="input-label">Confirm Password</div>
                 </div>
                 <div class="input-row">
-                    <div class="input-group signup-group">
-                        <input type="password" id="password" name="password" placeholder="*************" required>
+                    <div class="input-group signup-group has-password-toggle">
+                        <input type="password" id="password" name="password" placeholder="*************" required autocomplete="new-password">
+                        <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password" aria-pressed="false">👁</button>
                     </div>
-                    <div class="input-group signup-group">
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="*************" required>
+                    <div class="input-group signup-group has-password-toggle">
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="*************" required autocomplete="new-password">
+                        <button type="button" class="password-toggle" id="confirmPasswordToggle" aria-label="Show confirm password" aria-pressed="false">👁</button>
                     </div>
                 </div>
 
@@ -86,6 +88,23 @@
 
 <script>
     const USERS_API = new URL('../api/users.php', window.location.href).href;
+
+    function wirePasswordToggle(buttonId, inputId) {
+        const btn = document.getElementById(buttonId);
+        const input = document.getElementById(inputId);
+        if (!btn || !input) {
+            return;
+        }
+        btn.addEventListener('click', function () {
+            const showPlain = input.type === 'password';
+            input.type = showPlain ? 'text' : 'password';
+            btn.setAttribute('aria-pressed', showPlain ? 'true' : 'false');
+            btn.setAttribute('aria-label', showPlain ? 'Hide password' : 'Show password');
+        });
+    }
+
+    wirePasswordToggle('passwordToggle', 'password');
+    wirePasswordToggle('confirmPasswordToggle', 'confirmPassword');
 
     document.getElementById('signupForm').addEventListener('submit', async function (event) {
         event.preventDefault();

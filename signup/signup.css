@@ -179,16 +179,18 @@ body, html {
 /* For inputs that might have right-side icons (Username, Email, Passwords) */
 .input-group {
     position: relative;
+    display: block;
 }
 
 .signup-group {
     margin-bottom: 12px;
     flex: 1;
+    min-width: 0;
 }
 
 .signup-group input {
     width: 100%;
-    padding: 12px 40px 12px 20px; /* Padding on right for the eye icon */
+    padding: 12px 20px;
     background-color: #e8e8e8;
     border: 1px solid #dcdcdc;
     border-radius: 30px;
@@ -196,6 +198,13 @@ body, html {
     font-size: 14px;
     outline: none;
     transition: border-color 0.3s ease;
+    display: block;
+}
+
+.signup-group.has-password-toggle input {
+    height: 44px;
+    padding: 0 42px 0 18px;
+    line-height: 1.25;
 }
 
 .signup-group input:focus {
@@ -210,6 +219,37 @@ body, html {
     font-size: 14px;
     opacity: 0.5;
     cursor: pointer;
+}
+
+.signup-group .password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    padding: 6px 8px;
+    opacity: 0.6;
+    border-radius: 8px;
+    z-index: 2;
+    width: auto;
+    height: auto;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.signup-group .password-toggle:hover {
+    opacity: 1;
+}
+
+.signup-group .password-toggle:focus-visible {
+    outline: 2px solid #888;
+    outline-offset: 2px;
 }
 
 /* --- Buttons --- */
